@@ -67,8 +67,14 @@
         .futuristic-input:focus { border-color: #fadb5f; box-shadow: 0 0 10px rgba(220, 184, 88, 0.3); outline: none; }
         .futuristic-input option { background-color: #0f274c; color: white; }
 
-        /* Gaya Tabel Matriks */
-        .matrix-table th, .matrix-table td { border: 1px solid #000; text-align: center; vertical-align: middle; padding: 4px 8px; }
+        /* Gaya Tabel Matriks - DIPERBAIKI: table-layout: fixed & word-wrap */
+        .matrix-table { table-layout: fixed; width: 100%; border-collapse: collapse; }
+        .matrix-table th, .matrix-table td { border: 1px solid #000; text-align: center; vertical-align: middle; padding: 4px 6px; word-wrap: break-word; }
+        
+        /* Lebar Kolom Spesifik untuk Tabel HTML agar Rapi */
+        .col-hari { width: 100px; }
+        .col-jam { width: 50px; }
+        .col-waktu { width: 110px; }
 
         /* Mencegah teks patah di header kelas (Solusi "1 Inter 4") */
         .nowrap-text { white-space: nowrap; }
@@ -1052,6 +1058,7 @@
             });
         }
 
+        // OBAT PERBAIKAN 1: SINKRONISASI PEMBACAAN CHUNK WAKTU 
         function buildScheduleState(isRefresh = false) {
             currentScheduleData = { replacements: [] }; 
              const startDate = new Date(savedSetupData.tglMulai || new Date());
@@ -1303,7 +1310,7 @@
 
                     let allRombels = rombelDataList.map(rd => rd.rombel);
                     
-                    // Kita cari max mapel keseluruhan hari itu
+                    // Kita cari max mapel keseluruhan hari itu (semua kelas)
                     let maxMapelInDay = 0;
                     rombelDataList.forEach(rd => {
                         let chunk = rd.chunks[hariIdx] || [];
@@ -1356,7 +1363,7 @@
                         }
                     });
 
-                    // Merging waktu ke dalam struktur data
+                    // Merging waktu ke dalam struktur data yang LURUS/GLOBAL
                     let dailySessions = [];
                     let totalSlots = (maxMapelInDay * 2); // 1 mapel + 1 break, kecuali terakhir
                     
@@ -1372,7 +1379,6 @@
                         let mapelSesiMap = {};
                         let pengawasMap = {}; 
                         
-                        // Menampung string waktu yg bisa beda-beda
                         let waktuGroups = {
                             bawah: tBawah ? tBawah.waktu : "-",
                             atas: tAtas ? tAtas.waktu : "-"
@@ -1896,6 +1902,7 @@
              }
         }
 
+        // OBAT PERBAIKAN 2: RENDER TABEL & LEBAR KOLOM
         function renderAllMatrices() {
             const container = document.getElementById('matrix-containers');
             container.innerHTML = '';
@@ -1969,14 +1976,14 @@
                             <p class="text-md font-bold uppercase">TAHUN AJARAN ${thn}</p>
                         </div>
                         <div class="w-full overflow-x-auto">
-                            <table id="table-${level}" class="matrix-table w-full text-[10px] sm:text-xs">
+                            <table id="table-${level}" class="matrix-table text-[10px] sm:text-xs">
                                 <thead>
                                     <tr>
-                                        <th class="bg-header-${lvlLC} w-32 border-black-custom border-l-2-black" rowspan="2">Hari, Tanggal</th>
-                                        <th class="bg-header-${lvlLC} w-12 border-black-custom" rowspan="2">JAM KE</th>
-                                        <th class="bg-header-${lvlLC} w-32 border-black-custom" rowspan="2">${thBawahText}</th>
+                                        <th class="bg-header-${lvlLC} col-hari border-black-custom border-l-2-black" rowspan="2">Hari, Tanggal</th>
+                                        <th class="bg-header-${lvlLC} col-jam border-black-custom" rowspan="2">JAM KE</th>
+                                        <th class="bg-header-${lvlLC} col-waktu border-black-custom" rowspan="2">${thBawahText}</th>
                                         ${rombelsBawah.length > 0 ? `<th class="bg-header-${lvlLC} border-black-custom border-l-2-black" colspan="${rombelsBawah.length}">KELAS</th>` : ''}
-                                        ${rombelsAtas.length > 0 ? `<th class="bg-header-${lvlLC} w-32 border-black-custom" rowspan="2">${thAtasText}</th>` : ''}
+                                        ${rombelsAtas.length > 0 ? `<th class="bg-header-${lvlLC} col-waktu border-black-custom" rowspan="2">${thAtasText}</th>` : ''}
                                         ${rombelsAtas.length > 0 ? `<th class="bg-header-${lvlLC} border-black-custom border-l-2-black" colspan="${rombelsAtas.length}">KELAS</th>` : ''}
                                     </tr>
                                     <tr>
