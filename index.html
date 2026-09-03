@@ -166,6 +166,9 @@
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- BAGIAN 0: HALAMAN LOGIN                    -->
+    <!-- ========================================== -->
     <div id="login-section" class="flex-grow flex items-center justify-center p-4 fade-in">
         <div class="glass-panel rounded-2xl w-full max-w-md overflow-hidden shadow-neon border-t-4 border-schoolGold p-8 text-center">
             <img src="https://i.ibb.co.com/27J08HWy/favicon.png" alt="Logo Al Wildan" class="mx-auto h-24 mb-4 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]">
@@ -182,6 +185,9 @@
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- BAGIAN 0.5: HALAMAN UTAMA (LANDING PAGE)   -->
+    <!-- ========================================== -->
     <div id="landing-section" class="hidden flex-grow items-center justify-center p-4 fade-in">
         <div class="text-center w-full max-w-4xl">
             <img src="https://i.ibb.co.com/27J08HWy/favicon.png" alt="Logo Al Wildan" class="mx-auto h-32 mb-6 object-contain drop-shadow-[0_0_25px_rgba(255,255,255,0.4)]">
@@ -204,6 +210,9 @@
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- BAGIAN 1: PENGATURAN AWAL (FASE 1)         -->
+    <!-- ========================================== -->
     <div id="setup-section" class="hidden flex-grow items-center justify-center p-4 fade-in">
         <div class="glass-panel rounded-2xl w-full max-w-2xl overflow-hidden shadow-neon border-t-4 border-schoolGold relative">
             <button id="btn-back-landing-1" class="absolute top-4 left-4 text-gray-400 hover:text-white">&larr; Kembali</button>
@@ -254,6 +263,9 @@
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- BAGIAN 2: DASHBOARD KONFIGURASI (FASE 1)   -->
+    <!-- ========================================== -->
     <div id="dashboard-section" class="hidden flex-grow p-6 w-full max-w-6xl mx-auto fade-in">
         <button id="btn-back-setup" class="mb-4 text-schoolGold hover:text-white font-bold flex items-center transition">
             &larr; Kembali ke Pengaturan Dasar
@@ -285,6 +297,9 @@
         </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- BAGIAN 3: RESULT (HASIL MATRIKS & PANEL)   -->
+    <!-- ========================================== -->
     <div id="result-section" class="hidden flex-grow p-4 md:p-8 w-full max-w-[1400px] mx-auto fade-in mode-preview">
         
         <!-- HEADER MODE PREVIEW & GLOBAL EDITOR -->
@@ -642,10 +657,8 @@
     </div>
 
     <script>
-        // Setup API Backend Google Apps Script
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyjOGDb8-NdCzVFyouZgEWwOMuiut1xf47KJ3-YKZTL1chKneet-9WVis3x3WwiI-Vy/exec';
 
-        // Variabel Data
         let dummyTeachers = []; 
         let masterGurus = [];   
         let masterTemplates = [];
@@ -656,15 +669,12 @@
         let excludedDates = []; 
         
         let lastReplacement = null;
-
-        // VARIABEL BARU: MEMORI EDITOR WAKTU KELOMPOK
         let customTimeSettings = {}; 
 
         function getDayTimeSettings(lvl, hari, kelompok = 'bawah') {
             if (!customTimeSettings[lvl]) customTimeSettings[lvl] = {};
             if (!customTimeSettings[lvl][hari]) customTimeSettings[lvl][hari] = {};
             
-            // Set default jika belum ada
             if (!customTimeSettings[lvl][hari][kelompok]) {
                 if(lvl === 'SD') customTimeSettings[lvl][hari][kelompok] = { start: '07:00', break1: 30, break2: 30 }; 
                 else customTimeSettings[lvl][hari][kelompok] = { start: '07:00', break1: 15, break2: 15 }; 
@@ -672,7 +682,6 @@
             return customTimeSettings[lvl][hari][kelompok];
         }
 
-        // Tentukan kelompok kelas (Bawah vs Atas)
         function getKelompokKelas(lvl, r) {
             let num = parseInt(r.match(/\d+/)[0]);
             if (lvl === 'SD') return (num >= 5) ? 'atas' : 'bawah';
@@ -757,7 +766,7 @@
                 showToast("Gagal memuat data. Periksa URL Apps Script.", true);
             }
         }
-                
+
         function populateTeacherDropdowns() {
             document.querySelectorAll('.teacher-dropdown').forEach(select => {
                 if(select.id.includes('pengganti') || select.id.includes('edit-pgw-in')) return; 
@@ -1012,7 +1021,7 @@
                                     }
                                 });
                             } else {
-                                // JALUR ARTERI (Kelas 4 - 12) Menerapkan ATURAN EMAS
+                                // JALUR ARTERI (Menerapkan Aturan Emas)
                                 let availableForRoom = masterGurus.filter(g => {
                                     if(g.Nama_Guru === savedSetupData.ketua) return false;
                                     if(g.Jenjang_Diajar !== lvl) return false; 
@@ -1021,8 +1030,11 @@
                                     let n = g.Nama_Guru;
                                     let hist = historyGuruToday[n] || [];
 
+                                    // Cek apakah guru mengawas di sesi ini (atau jam ini udah bentrok)
                                     if(hist.some(h => h.sesi === sesi.jam)) return false;
+                                    // Aturan Anti Ngos-ngosan (Sesi berurutan)
                                     if(hist.some(h => Math.abs(h.sesi - sesi.jam) === 1)) return false;
+                                    // Aturan Lintas Kelompok (Hari ini stay di kelompok yg sama)
                                     if(hist.length > 0 && hist[0].kelompok !== kelompok) return false;
 
                                     return true;
@@ -1133,7 +1145,7 @@
                     let temp = [...chunk, newMapel];
                     let maxM = temp.length;
 
-                    // Hitung batas waktu pakai Default/Bawah biar aman
+                    // Validasi total jam untuk menahan mapel yang kebablasan
                     let dayString = availableDays[targetDayIndex];
                     let userSet = getDayTimeSettings(lvl.id, dayString, 'bawah');
                     let [uH, uM] = userSet.start.split(':').map(Number);
@@ -1152,6 +1164,7 @@
                     let isKelasBawah = isSD && (tingkat >= 1 && tingkat <= 2); 
                     let isKelasAtasSD = isSD && (tingkat >= 3 && tingkat <= 6);
 
+                    // Aturan ketat mapel eksak
                     if ((isSMP || isSMA) && isExact(newMapel) && chunk.some(x => isExact(x))) return false;
 
                     if (isKelasBawah) {
@@ -1263,7 +1276,7 @@
                     
                     if(maxMapelInDay === 0) return;
 
-                    // Mengkalkulasi batas jam Bawah dan Atas
+                    // Kalkulasi 2 Stopwatch (Bawah & Atas)
                     let sessionTimes = { bawah: [], atas: [] };
                     
                     ['bawah', 'atas'].forEach(klp => {
@@ -1317,7 +1330,7 @@
                         let jamRef = tBawah.jam !== '-' ? tBawah.jam : tAtas.jam;
                         let isBreak = tBawah.isBreak || tAtas.isBreak;
 
-                        if (jamRef === '-' && i > 0) break; // Berhenti kalau beneran abis
+                        if (jamRef === '-' && i > 0) break; // Berhenti kalau abis
 
                         let mapelSesiMap = {};
                         let pengawasMap = {}; 
@@ -1330,7 +1343,7 @@
                                     let chunk = rd.chunks[hariIdx] || [];
                                     let mapelIndex = (i - 1) / 2; 
                                     if(chunk[mapelIndex]) mapelSesiMap[r] = "Istirahat";
-                                    else mapelSesiMap[r] = "Pulang"; // Kalau udah ga ada ujian selanjutnya
+                                    else mapelSesiMap[r] = "Pulang"; // Kalau udah ga ada ujian, dicap Pulang
                                 }
                             });
                         } else {
@@ -1964,7 +1977,7 @@
                         let hasPengawas = !sesi.isBreak && sesi.pengawas && Object.keys(sesi.pengawas).length > 0;
                         if(hasPengawas) {
                             html += `<tr class="pengawas-row">`;
-                            // Colspan butuh dynamic karena ada kolom waktu tambahan
+                            // Colspan butuh dynamic karena ada kolom waktu tambahan di tengah
                             let csp = rombelsBawah.length > 0 ? 2 : 1; 
                             html += `<td colspan="${csp}" class="bg-pengawas-${lvlLC} font-bold text-right pr-4 border-black-custom">Pengawas</td>`;
                             
@@ -2025,7 +2038,7 @@
                 }
             }
 
-            ws.mergeCells(`A1:I1`); // Lebarin merge cell excel krn ada tambahan kolom
+            ws.mergeCells(`A1:I1`); // Dilebarin kolom mergenya
             let cellKop1 = ws.getCell(`A1`);
             cellKop1.value = skipPengawas ? `JADWAL UJIAN SISWA - ${level}` : `PENGAWAS UJIAN ${jenisUtamaLvl} - ${level}`;
             cellKop1.font = { size: 16, bold: true, name: 'Arial' };
@@ -2105,10 +2118,9 @@
                 excelRowIdx++;
             }
             ws.columns.forEach((col, i) => {
-                // Adjust width for dynamic time columns based on standard structure
                 if (i === 0) col.width = 15; // Hari
                 else if (i === 1) col.width = 8;  // Jam Ke
-                else col.width = 18; // Waktu & Mapel
+                else col.width = 18; // Waktu & Mapel (Standar lebar agar muat 07:00 - 08:30 WIB)
             });
         }
 
