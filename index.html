@@ -70,6 +70,9 @@
         /* Gaya Tabel Matriks */
         .matrix-table th, .matrix-table td { border: 1px solid #000; text-align: center; vertical-align: middle; padding: 4px 8px; }
 
+        /* Mencegah teks patah di header kelas (Solusi "1 Inter 4") */
+        .nowrap-text { white-space: nowrap; }
+
         /* Warna Tema per Tingkat */
         .bg-header-sd { background-color: #4ade80 !important; color: #000 !important; border-bottom: 2px solid #000 !important; }
         .bg-mapel-sd { background-color: #bbf7d0 !important; color: #000 !important; font-weight: bold; border-bottom: 2px solid #000 !important; }
@@ -147,11 +150,9 @@
 </head>
 <body class="antialiased flex flex-col relative overflow-x-hidden">
 
-    <!-- Ornamen Latar Belakang -->
     <div class="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] bg-schoolBlue rounded-full blur-[120px] opacity-50 pointer-events-none z-[-1]"></div>
     <div class="fixed bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-schoolGold rounded-full blur-[150px] opacity-20 pointer-events-none z-[-1]"></div>
 
-    <!-- UI Custom Toast (Notifikasi) -->
     <div id="custom-toast" class="fixed top-5 left-1/2 -translate-x-1/2 z-[200] transition-all duration-300 opacity-0 pointer-events-none translate-y-[-20px]">
         <div id="toast-bg" class="bg-schoolBlue border-2 border-schoolGold text-white px-6 py-3 rounded-full shadow-[0_0_20px_rgba(220,184,88,0.4)] flex items-center">
             <span id="toast-icon" class="mr-3 text-2xl">🔔</span>
@@ -159,9 +160,6 @@
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- BAGIAN 0: HALAMAN LOGIN (BARU)             -->
-    <!-- ========================================== -->
     <div id="login-section" class="flex-grow flex items-center justify-center p-4 fade-in">
         <div class="glass-panel rounded-2xl w-full max-w-md overflow-hidden shadow-neon border-t-4 border-schoolGold p-8 text-center">
             <img src="https://i.ibb.co.com/27J08HWy/favicon.png" alt="Logo Al Wildan" class="mx-auto h-24 mb-4 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]">
@@ -178,9 +176,6 @@
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- BAGIAN 0.5: HALAMAN UTAMA (LANDING PAGE)   -->
-    <!-- ========================================== -->
     <div id="landing-section" class="hidden flex-grow items-center justify-center p-4 fade-in">
         <div class="text-center w-full max-w-4xl">
             <img src="https://i.ibb.co.com/27J08HWy/favicon.png" alt="Logo Al Wildan" class="mx-auto h-32 mb-6 object-contain drop-shadow-[0_0_25px_rgba(255,255,255,0.4)]">
@@ -203,9 +198,6 @@
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- BAGIAN 1: PENGATURAN AWAL (FASE 1)         -->
-    <!-- ========================================== -->
     <div id="setup-section" class="hidden flex-grow items-center justify-center p-4 fade-in">
         <div class="glass-panel rounded-2xl w-full max-w-2xl overflow-hidden shadow-neon border-t-4 border-schoolGold relative">
             <button id="btn-back-landing-1" class="absolute top-4 left-4 text-gray-400 hover:text-white">&larr; Kembali</button>
@@ -256,9 +248,6 @@
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- BAGIAN 2: DASHBOARD KONFIGURASI (FASE 1)   -->
-    <!-- ========================================== -->
     <div id="dashboard-section" class="hidden flex-grow p-6 w-full max-w-6xl mx-auto fade-in">
         <button id="btn-back-setup" class="mb-4 text-schoolGold hover:text-white font-bold flex items-center transition">
             &larr; Kembali ke Pengaturan Dasar
@@ -290,9 +279,6 @@
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- BAGIAN 3: RESULT (HASIL MATRIKS & PANEL)   -->
-    <!-- ========================================== -->
     <div id="result-section" class="hidden flex-grow p-4 md:p-8 w-full max-w-[1400px] mx-auto fade-in mode-preview">
         
         <!-- HEADER MODE PREVIEW & GLOBAL EDITOR -->
@@ -539,11 +525,11 @@
         </div>
     </div>
 
-    <!-- MODAL EDITOR WAKTU KELOMPOK -->
+    <!-- MODAL EDITOR WAKTU (ULTIMATE VERSION: MULTIDIMENSI) -->
     <div id="modal-editor-waktu" class="modal-overlay">
         <div class="glass-panel p-8 rounded-xl w-full max-w-lg relative">
             <h2 class="text-xl font-bold text-yellow-400 mb-4 border-b border-yellow-400/30 pb-2">⏱️ Editor Waktu</h2>
-            <p class="text-xs text-gray-400 mb-4">Atur waktu ujian untuk kelompok kelas tertentu pada hari yang dipilih.</p>
+            <p class="text-xs text-gray-400 mb-4">Atur waktu ujian untuk kelompok kelas tertentu pada hari yang dipilih. Pastikan untuk menekan 'Terapkan' pada setiap kelompok yang diubah.</p>
             
             <div class="space-y-4 mb-6">
                 <div class="grid grid-cols-2 gap-4">
@@ -606,7 +592,7 @@
 
             <div class="flex justify-end gap-3">
                 <button onclick="closeModal('modal-editor-waktu')" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-500 text-sm">Batal</button>
-                <button onclick="saveEditorWaktu()" class="px-4 py-2 bg-yellow-600 text-schoolBlue rounded hover:bg-yellow-500 text-sm font-bold shadow-[0_0_10px_rgba(250,204,21,0.5)]">Terapkan Jam</button>
+                <button onclick="saveEditorWaktu()" class="px-4 py-2 bg-yellow-600 text-schoolBlue rounded hover:bg-yellow-500 text-sm font-bold shadow-[0_0_10px_rgba(250,204,21,0.5)]">Terapkan Ke Kelompok Ini</button>
             </div>
         </div>
     </div>
@@ -1989,13 +1975,13 @@
                                         <th class="bg-header-${lvlLC} w-32 border-black-custom border-l-2-black" rowspan="2">Hari, Tanggal</th>
                                         <th class="bg-header-${lvlLC} w-12 border-black-custom" rowspan="2">JAM KE</th>
                                         <th class="bg-header-${lvlLC} w-32 border-black-custom" rowspan="2">${thBawahText}</th>
-                                        ${rombelsBawah.length > 0 ? `<th class="bg-header-${lvlLC} border-black-custom border-l-2-black" colspan="${rombelsBawah.length}">KELAS BAWAH</th>` : ''}
+                                        ${rombelsBawah.length > 0 ? `<th class="bg-header-${lvlLC} border-black-custom border-l-2-black" colspan="${rombelsBawah.length}">KELAS</th>` : ''}
                                         ${rombelsAtas.length > 0 ? `<th class="bg-header-${lvlLC} w-32 border-black-custom" rowspan="2">${thAtasText}</th>` : ''}
-                                        ${rombelsAtas.length > 0 ? `<th class="bg-header-${lvlLC} border-black-custom border-l-2-black" colspan="${rombelsAtas.length}">KELAS ATAS</th>` : ''}
+                                        ${rombelsAtas.length > 0 ? `<th class="bg-header-${lvlLC} border-black-custom border-l-2-black" colspan="${rombelsAtas.length}">KELAS</th>` : ''}
                                     </tr>
                                     <tr>
-                                        ${rombelsBawah.map(r => `<th class="bg-mapel-${lvlLC} border-black-custom border-l-2-black">${r}</th>`).join('')}
-                                        ${rombelsAtas.map(r => `<th class="bg-mapel-${lvlLC} border-black-custom border-l-2-black">${r}</th>`).join('')}
+                                        ${rombelsBawah.map(r => `<th class="bg-mapel-${lvlLC} border-black-custom border-l-2-black nowrap-text">${r}</th>`).join('')}
+                                        ${rombelsAtas.map(r => `<th class="bg-mapel-${lvlLC} border-black-custom border-l-2-black nowrap-text">${r}</th>`).join('')}
                                     </tr>
                                 </thead>
                                 <tbody>`;
@@ -2322,9 +2308,6 @@
             container.innerHTML = sorted.map(t => `<div class="p-2 border border-white/10 rounded flex justify-between"><span>${t}</span><span class="font-bold">${counts[t]}</span></div>`).join('');
         }
 
-        // =======================================================
-        // LOGIKA BARU REPLACEMENT PROTOCOL (GANTI PENGAWAS AUTO)
-        // =======================================================
         let tempRepData = []; 
 
         window.updateRepGuruIzin = function() {
@@ -2447,7 +2430,7 @@
             const lvl = data.tingkat;
             const replacedRombel = data.rombel;
             const replacedMapel = data.mapel;
-            const replacedWaktu = data.waktu; // Waktu dinamis grup atas/bawah
+            const replacedWaktu = data.waktu; 
 
             const sesiData = currentScheduleData[h]?.[lvl]?.sessions.find(x => x.jam === s);
             let found = false;
@@ -2508,7 +2491,6 @@
             setTimeout(() => al.classList.add('hidden'), 3000);
         });
 
-        // FUNGSI BARU: GENERATOR TEKS WA
         window.copyWAPengganti = function() {
             const hari = document.getElementById('print-rekap-hari').value;
             if(!hari) { showToast("Pilih hari ujian terlebih dahulu!", true); return; }
