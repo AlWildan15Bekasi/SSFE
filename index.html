@@ -68,7 +68,7 @@
         .futuristic-input option { background-color: #0f274c; color: white; }
 
         .matrix-table { 
-            width: max-content; /* Biarkan melebar sesuai isi kelas */
+            width: max-content; 
             min-width: 100%;
             border-collapse: collapse; 
         }
@@ -76,17 +76,18 @@
             border: 1px solid #000; 
             text-align: center; 
             vertical-align: middle; 
-            padding: 6px 10px; 
+            padding: 8px 10px; 
         }
         
-        /* Mengunci lebar kolom waktu agar "WIB" tidak melorot */
+        /* Mengunci kolom hari, jam, dan waktu agar rapi */
+        .col-hari { min-width: 100px !important; }
+        .col-jam { min-width: 50px !important; }
         .col-waktu { 
             width: 150px !important; 
             min-width: 150px !important; 
-            white-space: nowrap; 
+            white-space: nowrap !important; /* HARAM TURUN BARIS */
         }
-        
-        .nowrap-text { white-space: nowrap; }
+        .nowrap-text { white-space: nowrap !important; }
 
         /* Warna Tema per Tingkat */
         .bg-header-sd { background-color: #4ade80 !important; color: #000 !important; border-bottom: 2px solid #000 !important; }
@@ -105,6 +106,7 @@
         .bg-nama-sma { background-color: #b91c1c !important; color: white !important; border-bottom: 1px solid #7f1d1d !important;}
 
         .bg-white-cell { background-color: white !important; color: black !important; }
+        .bg-gray-200-cell { background-color: #e5e7eb !important; color: black !important; }
         .border-black-custom { border: 1px solid black !important; }
         .border-l-2-black { border-left: 2px solid black !important; }
         .border-r-2-black { border-right: 2px solid black !important; }
@@ -136,7 +138,7 @@
             #result-section { display: block !important; padding: 0 !important; margin: 0 !important; }
             .glass-panel { background: white !important; border: none !important; box-shadow: none !important; padding: 0 !important; margin-bottom: 20px !important;}
             .matrix-table { width: 100% !important; font-size: 8px !important; border-collapse: collapse !important; }
-            .matrix-table th, .matrix-table td { padding: 2px !important; border: 1px solid black !important; }
+            .matrix-table th, .matrix-table td { padding: 4px !important; border: 1px solid black !important; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
 
@@ -297,7 +299,7 @@
         <!-- HEADER MODE PREVIEW & GLOBAL EDITOR -->
         <div class="preview-only mb-6 text-center border-b border-schoolGold/30 pb-4">
             <h2 class="text-3xl font-black text-schoolGold tracking-wider uppercase">Preview Jadwal Sementara</h2>
-            <p class="text-sm text-gray-400 mb-6">Jadwal mata pelajaran dikunci seragam per jenjang. Gunakan tombol 'Acak Ulang' hanya untuk merubah formasi Pengawas.</p>
+            <p class="text-sm text-gray-400 mb-6">Jadwal disusun dengan memori terpisah (2 Stopwatch). Mapel dijamin utuh dan anti-pulang-error.</p>
             
             <div id="editor-panel" class="flex flex-wrap justify-center gap-4 mt-2">
                 <button onclick="openEditorHari()" class="bg-red-900/80 hover:bg-red-800 border border-red-500 text-red-100 font-bold py-2 px-6 rounded-full shadow-[0_0_10px_rgba(220,38,38,0.5)] flex items-center transition text-sm">
@@ -391,10 +393,6 @@
         </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- MODAL EDITORS                              -->
-    <!-- ========================================== -->
-    
     <!-- MODAL EDITOR TANGGAL LIBUR -->
     <div id="modal-hari" class="modal-overlay">
         <div class="glass-panel p-8 rounded-xl w-full max-w-md relative">
@@ -663,7 +661,6 @@
         let lastReplacement = null;
         let customTimeSettings = {}; 
 
-        // Fungsi Ambil Settingan Waktu Per Kelompok (Bawah/Atas)
         function getDayTimeSettings(lvl, hari, kelompok = 'bawah') {
             if (!customTimeSettings[lvl]) customTimeSettings[lvl] = {};
             if (!customTimeSettings[lvl][hari]) customTimeSettings[lvl][hari] = {};
@@ -675,12 +672,11 @@
             return customTimeSettings[lvl][hari][kelompok];
         }
 
-        // Fungsi Deteksi Rombel masuk kelompok mana
         function getKelompokKelas(lvl, r) {
             let num = parseInt(r.match(/\d+/)[0]);
-            if (lvl === 'SD') return (num >= 5) ? 'atas' : 'bawah'; // SD: Bawah (1-4), Atas (5-6)
-            if (lvl === 'SMP') return (num === 9) ? 'atas' : 'bawah'; // SMP: Bawah (7-8), Atas (9)
-            if (lvl === 'SMA') return (num === 12) ? 'atas' : 'bawah'; // SMA: Bawah (10-11), Atas (12)
+            if (lvl === 'SD') return (num >= 5) ? 'atas' : 'bawah'; 
+            if (lvl === 'SMP') return (num === 9) ? 'atas' : 'bawah'; 
+            if (lvl === 'SMA') return (num === 12) ? 'atas' : 'bawah'; 
             return 'bawah';
         }
 
@@ -793,7 +789,7 @@
 
             masterTemplates.forEach(t => {
                 if(!t.Tingkat_Kelas || !t.Jenis_Ujian) return;
-                allUjian.add(t.Jenis_Ujian);
+                allUjian.add(t.Jenis_Ujian.trim()); // Trim whitespace to prevent bugs
                 let tk = parseInt(t.Tingkat_Kelas);
                 if(tk >= 1 && tk <= 6) sdClasses.add(tk);
                 else if(tk >= 7 && tk <= 9) smpClasses.add(tk);
@@ -823,12 +819,11 @@
                 });
             }
 
-            renderDynamic('sd-container', sdClasses);
+            renderDynamic('sd-container', sdClasses, 'sd');
             renderDynamic('smp-container', smpClasses, 'smp');
             renderDynamic('sma-container', smaClasses, 'sma');
         }
 
-        // Section Navigations
         const secLanding = document.getElementById('landing-section');
         const secSetup = document.getElementById('setup-section');
         const secDashboard = document.getElementById('dashboard-section');
@@ -880,7 +875,7 @@
         // ==========================================
         function buildScheduleState(isRefresh = false) {
             currentScheduleData = { replacements: [] }; 
-             const startDate = new Date(savedSetupData.tglMulai || new Date());
+            const startDate = new Date(savedSetupData.tglMulai || new Date());
             const endDate = new Date(savedSetupData.tglSelesai || new Date());
                         
             availableDays = [];
@@ -906,8 +901,9 @@
                     let chk = document.getElementById(`chk-${lvl.prefix}-${i}`);
                     let ujiSelect = document.getElementById(`uji-${lvl.prefix}-${i}`);
                     if(chk && chk.checked && ujiSelect.value !== "") {
-                        let jenis = ujiSelect.value;
-                        jenjangTmpls.push(...masterTemplates.filter(t => t.Jenis_Ujian === jenis && String(t.Tingkat_Kelas) === String(i)));
+                        let jenis = ujiSelect.value.trim().toLowerCase();
+                        // KEBAL TYPO: Pengecekan dengan Trim dan toLowerCase untuk SD
+                        jenjangTmpls.push(...masterTemplates.filter(t => t.Jenis_Ujian && t.Jenis_Ujian.trim().toLowerCase() === jenis && String(t.Tingkat_Kelas) === String(i)));
                     }
                 }
 
@@ -946,8 +942,8 @@
                     let chk = document.getElementById(`chk-${lvl.prefix}-${i}`);
                     let ujiSelect = document.getElementById(`uji-${lvl.prefix}-${i}`);
                     if(chk && chk.checked && ujiSelect.value !== "") {
-                        let jenis = ujiSelect.value;
-                        let tmpls = masterTemplates.filter(t => t.Jenis_Ujian === jenis && String(t.Tingkat_Kelas) === String(i));
+                        let jenis = ujiSelect.value.trim().toLowerCase();
+                        let tmpls = masterTemplates.filter(t => t.Jenis_Ujian && t.Jenis_Ujian.trim().toLowerCase() === jenis && String(t.Tingkat_Kelas) === String(i));
                         tmpls.forEach(t => {
                             if(!rombelMap[t.Kelas_Rombel]) { rombelMap[t.Kelas_Rombel] = []; rombelTingkat[t.Kelas_Rombel] = parseInt(i); }
                             rombelMap[t.Kelas_Rombel].push(t);
@@ -958,7 +954,8 @@
                 let rombelChunks = {};
                 for(let r in rombelMap) { rombelChunks[r] = Array.from({length: totalDays}, () => []); }
 
-                // BACK TO BASIC: Hanya cek kuota maksimum per hari dan anti-eksakta dobel
+                // BACK TO BASIC: Hanya cek kuota maksimum per hari dan anti-eksakta dobel.
+                // TIDAK ADA PENGHALANG DURASI DI SINI! (Agar Mapel masuk 100%)
                 function isValidChunk(allChunksForRombel, targetDayIndex, newMapel, tingkat, lvlId) {
                     if(!allChunksForRombel || !allChunksForRombel[targetDayIndex]) return false;
                     let chunk = allChunksForRombel[targetDayIndex];
@@ -969,12 +966,14 @@
                     let isSMP = lvlId === 'SMP';
                     let isSMA = lvlId === 'SMA';
 
-                    // Aturan ketat mapel eksak
+                    // Aturan ketat mapel eksak: Dilarang numpuk di 1 hari
                     if ((isSMP || isSMA) && isExact(newMapel) && chunk.some(x => isExact(x))) return false;
 
+                    // Batasan wajar mapel per hari
                     if (isSD) { if (maxM > 2) return false; } 
                     else if (isSMP) { if (maxM > 3) return false; } 
                     else if (isSMA) { if (maxM > 3) return false; }
+                    
                     return true;
                 }
 
@@ -1047,7 +1046,7 @@
             availableDays.forEach((hari, hariIdx) => {
                 levels.forEach(lvl => {
                     let rombelDataList = levelData[lvl.id];
-                    if(!rombelDataList || rombelDataList.length === 0) return;
+                    if(!rombelDataList || rombelDataList.length === 0) return; // Jika kosong, lewati (Cegah Error)
 
                     let hasMapel = rombelDataList.some(rd => rd.chunks[hariIdx] && rd.chunks[hariIdx].length > 0);
                     if(!hasMapel) return;
@@ -1062,19 +1061,28 @@
                     
                     if(maxMapelInDay === 0) return;
 
+                    // Buat Skeleton Sesuai Urutan Logis (Total Max 6 Baris per Hari)
+                    // 0: Dzikir, 1: Sesi 1, 2: Break 1, 3: Sesi 2, 4: Break 2, 5: Sesi 3
                     let dailySessions = [];
-                    // Buat skeleton: Sesi 0 (Dzikir), Sesi 1, Break 1, Sesi 2, Break 2, Sesi 3
-                    let totalSlots = maxMapelInDay * 2 + 1; 
-                    
-                    for(let i=0; i<totalSlots; i++) {
-                        let isBreak = (i % 2 === 0);
-                        let jamKe = isBreak ? '-' : Math.ceil(i / 2);
+                    let rowCount = maxMapelInDay * 2 + 1; // Jika 2 mapel, maka butuh 5 baris. Jika 3 mapel, butuh 7 baris. (Max 3 = 7 baris)
+
+                    for(let i=0; i<rowCount; i++) {
+                        let type = 'sesi';
+                        let jamKe = '-';
+                        if (i === 0) type = 'dzikir';
+                        else if (i % 2 === 0) type = 'break';
+                        else {
+                            type = 'sesi';
+                            jamKe = Math.ceil(i / 2); // Sesi 1, 2, 3
+                        }
+                        
                         let mapelSesiMap = {};
 
                         allRombels.forEach(r => {
-                            if(isBreak) {
-                                if(i === 0) mapelSesiMap[r] = "Dzikir & Muroja'ah"; // Default nama
-                                else mapelSesiMap[r] = "Istirahat";
+                            if(type === 'dzikir') {
+                                mapelSesiMap[r] = "DZIKIR, DHUHA & MUROJA'AH";
+                            } else if (type === 'break') {
+                                mapelSesiMap[r] = "ISTIRAHAT";
                             } else {
                                 let rd = rombelDataList.find(x => x.rombel === r);
                                 let chunk = rd.chunks[hariIdx] || [];
@@ -1086,12 +1094,14 @@
                         });
 
                         dailySessions.push({ 
+                            type: type,
                             jam: jamKe, 
-                            waktu_bawah: "-", // Akan diisi di fungsi berikutnya
+                            waktu_bawah: "-", // Akan diisi 2 Stopwatch
                             waktu_atas: "-",
                             mapelUtama: mapelSesiMap, 
                             pengawas: {}, 
-                            isBreak: isBreak 
+                            isPulangBawah: false,
+                            isPulangAtas: false
                         });
                     }
 
@@ -1099,7 +1109,7 @@
                 });
             });
 
-            // Tahap Akhir: Menghitung stempel waktu ganda
+            // Tahap Akhir: Menghitung stempel waktu ganda dengan bebas ngalir
             recalculateTimesAndBreaks();
             reassignPengawas();
         }
@@ -1114,85 +1124,94 @@
                     let sessions = data.sessions;
                     if(sessions.length === 0) return;
 
-                    ['bawah', 'atas'].forEach(klp => {
-                        let userSet = getDayTimeSettings(lvl, hari, klp);
-                        let startSetting = userSet.start; 
-                        let [startH, startM] = startSetting.split(':').map(Number);
-                        let currentTime = new Date(2000, 0, 1, startH, startM);
-
-                        let dzikirStartTime = new Date(2000, 0, 1, 7, 0); 
-                        let endTimeDzikir = new Date(2000, 0, 1, startH, startM);
-                        
-                        let isPulang = false;
-                        let klpRombels = data.rombels.filter(r => getKelompokKelas(lvl, r) === klp);
-
-                        if(klpRombels.length === 0) return;
-
-                        sessions.forEach((s, idx) => {
-                            if (isPulang) {
-                                if(klp === 'bawah') s.waktu_bawah = "-"; else s.waktu_atas = "-";
-                                klpRombels.forEach(r => s.mapelUtama[r] = "Pulang");
-                                return;
-                            }
-
-                            if (idx === 0) { // Sesi Dzikir
-                                let wStr = formatTime(dzikirStartTime) + ' - ' + formatTime(endTimeDzikir);
-                                if(klp === 'bawah') s.waktu_bawah = wStr; else s.waktu_atas = wStr;
-                                klpRombels.forEach(r => s.mapelUtama[r] = "Dzikir, Dhuha & Muroja'ah");
-                            } 
-                            else if (s.isBreak) { // Sesi Istirahat
-                                // Cek apakah setelah istirahat ini masih ada mapel untuk kelompok ini
-                                let hasMoreMapel = false;
-                                for (let nextIdx = idx + 1; nextIdx < sessions.length; nextIdx++) {
-                                    let nextS = sessions[nextIdx];
-                                    if (!nextS.isBreak) {
-                                        if (klpRombels.some(r => nextS.mapelUtama[r] && nextS.mapelUtama[r] !== "-" && nextS.mapelUtama[r] !== "Pulang")) {
-                                            hasMoreMapel = true; break;
-                                        }
-                                    }
-                                }
-
-                                if (!hasMoreMapel) {
-                                    isPulang = true;
-                                    if(klp === 'bawah') s.waktu_bawah = "-"; else s.waktu_atas = "-";
-                                    klpRombels.forEach(r => s.mapelUtama[r] = "Pulang");
-                                } else {
-                                    let breakDur = (idx === 2) ? userSet.break1 : userSet.break2; 
-                                    let breakEnd = new Date(currentTime.getTime() + breakDur * 60000); 
-                                    let wStr = formatTime(currentTime) + ' - ' + formatTime(breakEnd);
-                                    if(klp === 'bawah') s.waktu_bawah = wStr; else s.waktu_atas = wStr;
-                                    currentTime = breakEnd;
-                                    klpRombels.forEach(r => s.mapelUtama[r] = "Istirahat");
-                                }
-                            } 
-                            else { // Sesi Mapel
-                                let maxDur = 0;
-                                klpRombels.forEach(r => {
-                                    let mName = s.mapelUtama[r];
-                                    if (mName && mName !== "-" && mName !== "Pulang") {
-                                        let selectEl = document.getElementById(`uji-${lvl.toLowerCase()}-${r.match(/\d+/)[0]}`);
-                                        let jenis = selectEl ? selectEl.value : null;
-                                        let tingkatKls = r.match(/\d+/)[0];
-                                        let tmpl = masterTemplates.find(t => t.Mata_Pelajaran === mName && t.Jenis_Ujian === jenis && String(t.Tingkat_Kelas) === String(tingkatKls)) || masterTemplates.find(t => t.Mata_Pelajaran === mName && t.Jenis_Ujian === jenis);
-                                        let dur = tmpl ? getSafeDuration(tmpl) : 90;
-                                        if(dur > maxDur) maxDur = dur;
-                                    }
-                                });
-
-                                if (maxDur === 0) {
-                                    isPulang = true;
-                                    if(klp === 'bawah') s.waktu_bawah = "-"; else s.waktu_atas = "-";
-                                    klpRombels.forEach(r => s.mapelUtama[r] = "Pulang");
-                                } else {
-                                    let endTimeSesi = new Date(currentTime.getTime() + maxDur * 60000);
-                                    let wStr = formatTime(currentTime) + ' - ' + formatTime(endTimeSesi);
-                                    if(klp === 'bawah') s.waktu_bawah = wStr; else s.waktu_atas = wStr;
-                                    currentTime = endTimeSesi;
-                                }
-                            }
-                        });
-                    });
+                    // Eksekusi Stopwatch Kelas Bawah
+                    runStopwatch(lvl, hari, data, 'bawah');
+                    // Eksekusi Stopwatch Kelas Atas
+                    runStopwatch(lvl, hari, data, 'atas');
                 });
+            });
+        }
+
+        function runStopwatch(lvl, hari, data, klp) {
+            let sessions = data.sessions;
+            let klpRombels = data.rombels.filter(r => getKelompokKelas(lvl, r) === klp);
+            if(klpRombels.length === 0) return; // Skip if group doesn't exist
+
+            let userSet = getDayTimeSettings(lvl, hari, klp);
+            let [startH, startM] = userSet.start.split(':').map(Number);
+            let currentTime = new Date(2000, 0, 1, startH, startM);
+
+            let dzikirStartTime = new Date(2000, 0, 1, 7, 0); 
+            let endTimeDzikir = new Date(2000, 0, 1, startH, startM);
+            
+            let isPulang = false;
+
+            sessions.forEach((s, idx) => {
+                // Jika sudah ditandai pulang sebelumnya
+                if (isPulang) {
+                    if(klp === 'bawah') { s.waktu_bawah = "-"; s.isPulangBawah = true; }
+                    else { s.waktu_atas = "-"; s.isPulangAtas = true; }
+                    klpRombels.forEach(r => s.mapelUtama[r] = "Pulang");
+                    return;
+                }
+
+                if (s.type === 'dzikir') { 
+                    let wStr = formatTime(dzikirStartTime) + ' - ' + formatTime(endTimeDzikir);
+                    if(klp === 'bawah') s.waktu_bawah = wStr; else s.waktu_atas = wStr;
+                } 
+                else if (s.type === 'break') { 
+                    // Cek apakah di sesi mapel berikutnya group ini masih ada jadwal?
+                    let hasMoreMapel = false;
+                    for (let nextIdx = idx + 1; nextIdx < sessions.length; nextIdx++) {
+                        let nextS = sessions[nextIdx];
+                        if (nextS.type === 'sesi') {
+                            if (klpRombels.some(r => nextS.mapelUtama[r] && nextS.mapelUtama[r] !== "-" && nextS.mapelUtama[r] !== "Pulang")) {
+                                hasMoreMapel = true; break;
+                            }
+                        }
+                    }
+
+                    if (!hasMoreMapel) {
+                        isPulang = true;
+                        if(klp === 'bawah') { s.waktu_bawah = "-"; s.isPulangBawah = true; }
+                        else { s.waktu_atas = "-"; s.isPulangAtas = true; }
+                        klpRombels.forEach(r => s.mapelUtama[r] = "Pulang");
+                    } else {
+                        let breakDur = (idx === 2) ? userSet.break1 : userSet.break2; 
+                        let breakEnd = new Date(currentTime.getTime() + breakDur * 60000); 
+                        let wStr = formatTime(currentTime) + ' - ' + formatTime(breakEnd);
+                        if(klp === 'bawah') s.waktu_bawah = wStr; else s.waktu_atas = wStr;
+                        currentTime = breakEnd;
+                    }
+                } 
+                else if (s.type === 'sesi') { 
+                    let maxDur = 0;
+                    klpRombels.forEach(r => {
+                        let mName = s.mapelUtama[r];
+                        if (mName && mName !== "-" && mName !== "Pulang") {
+                            let selectEl = document.getElementById(`uji-${lvl.toLowerCase()}-${r.match(/\d+/)[0]}`);
+                            let jenis = selectEl ? selectEl.value : null;
+                            let tingkatKls = r.match(/\d+/)[0];
+                            // Search fallback
+                            let tmpl = masterTemplates.find(t => t.Mata_Pelajaran === mName && t.Jenis_Ujian === jenis && String(t.Tingkat_Kelas) === String(tingkatKls)) || 
+                                       masterTemplates.find(t => t.Mata_Pelajaran === mName && t.Jenis_Ujian === jenis);
+                            let dur = tmpl ? getSafeDuration(tmpl) : 90;
+                            if(dur > maxDur) maxDur = dur;
+                        }
+                    });
+
+                    if (maxDur === 0) {
+                        isPulang = true;
+                        if(klp === 'bawah') { s.waktu_bawah = "-"; s.isPulangBawah = true; }
+                        else { s.waktu_atas = "-"; s.isPulangAtas = true; }
+                        klpRombels.forEach(r => s.mapelUtama[r] = "Pulang");
+                    } else {
+                        let endTimeSesi = new Date(currentTime.getTime() + maxDur * 60000);
+                        let wStr = formatTime(currentTime) + ' - ' + formatTime(endTimeSesi);
+                        if(klp === 'bawah') s.waktu_bawah = wStr; else s.waktu_atas = wStr;
+                        currentTime = endTimeSesi;
+                    }
+                }
             });
         }
 
@@ -1236,7 +1255,7 @@
                     let data = currentScheduleData[hari][lvl];
                     
                     data.sessions.forEach(sesi => {
-                        if(sesi.isBreak) return;
+                        if(sesi.type !== 'sesi') return; // Cuma nge-plot di baris mapel/sesi
                         
                         let jenjangAdaUjian = false;
                         for (let r in sesi.mapelUtama) {
@@ -1286,33 +1305,40 @@
                                     }
                                 });
                             } else {
-                                // JALUR ARTERI: Pencarian Guru Random (Aturan Emas Anti-Bentrok Berurutan)
+                                // JALUR ARTERI (THE SOFT RULE): Pencarian Guru
                                 let availableForRoom = masterGurus.filter(g => {
                                     if(g.Nama_Guru === savedSetupData.ketua) return false;
-                                    if(g.Jenjang_Diajar !== lvl) return false; 
+                                    if(g.Jenjang_Diajar !== lvl) return false; // Wajib dari jenjang yang sama (Controlled Chain)
                                     if(dedicatedSD13.has(g.Nama_Guru)) return false; 
                                     
                                     let n = g.Nama_Guru;
                                     let hist = historyGuruToday[n] || [];
 
-                                    // Cek apakah guru mengawas di sesi yang sama hari ini
-                                    if(hist.some(h => h.sesi === sesi.jam)) return false;
-                                    
-                                    // Aturan Emas 1: Pantang Ngos-ngosan (Sesi berurutan)
-                                    // Pastikan kita ngecek berdasarkan integer
-                                    let currentJamNum = parseInt(sesi.jam);
-                                    if(!isNaN(currentJamNum)) {
-                                        if(hist.some(h => Math.abs(parseInt(h.sesi) - currentJamNum) === 1)) return false;
-                                    }
+                                    // Cek apakah guru sedang mengawas di sesi yang sama SAAT INI
+                                    if(hist.some(h => h.sesi === sesi.jam)) return false; // Hard Rule (Tidak boleh ganda)
 
                                     return true;
                                 });
 
+                                // Filter Prioritas 1: Guru yang tidak ngawas di sesi berurutan (Anti-Ngos-Ngosan)
+                                let priority1 = availableForRoom.filter(g => {
+                                    let hist = historyGuruToday[g.Nama_Guru] || [];
+                                    let currentJamNum = parseInt(sesi.jam);
+                                    if(!isNaN(currentJamNum)) {
+                                        // Soft Rule: Kalau ada selisih sesi 1 angka, jangan masuk prioritas 1
+                                        if(hist.some(h => Math.abs(parseInt(h.sesi) - currentJamNum) === 1)) return false;
+                                    }
+                                    return true;
+                                });
+
+                                // Fallback: Kalau prioritas 1 habis, terpaksa ambil prioritas 2 (guru yang beruntun tapi 1 jenjang)
+                                let candidates = priority1.length > 0 ? priority1 : availableForRoom;
                                 let picked = "-TBA-";
-                                if(availableForRoom.length > 0) {
-                                    shuffleArray(availableForRoom); 
-                                    availableForRoom.sort((a, b) => workload[a.Nama_Guru] - workload[b.Nama_Guru]);
-                                    picked = availableForRoom[0].Nama_Guru;
+
+                                if(candidates.length > 0) {
+                                    shuffleArray(candidates); 
+                                    candidates.sort((a, b) => workload[a.Nama_Guru] - workload[b.Nama_Guru]);
+                                    picked = candidates[0].Nama_Guru;
                                     
                                     workload[picked]++; 
                                     assignedGurusToday.add(picked); 
@@ -1335,8 +1361,25 @@
 
             ['SD', 'SMP', 'SMA'].forEach(level => {
                 let allRombels = [];
-                for(let h of availableDays) { if(currentScheduleData[h] && currentScheduleData[h][level]) { allRombels = currentScheduleData[h][level].rombels; break; } }
-                if(allRombels.length === 0) return;
+                // Cek apakah ada data mapel yang sukses ditarik di level ini
+                let isDataExists = false;
+                for(let h of availableDays) { 
+                    if(currentScheduleData[h] && currentScheduleData[h][level] && currentScheduleData[h][level].rombels.length > 0) { 
+                        allRombels = currentScheduleData[h][level].rombels; 
+                        isDataExists = true;
+                        break; 
+                    } 
+                }
+                
+                if(!isDataExists) {
+                    // Deteksi kalau SD dicentang tapi hilang
+                    let isChecked = false;
+                    for(let i=1; i<=12; i++) { if(document.getElementById(`chk-${level.toLowerCase()}-${i}`)?.checked) isChecked=true; }
+                    if(isChecked) {
+                        container.innerHTML += `<div class="glass-panel p-6 rounded-xl text-center"><h3 class="text-xl font-bold text-red-400">Tabel ${level} Kosong / Tidak Ada Data</h3><p class="text-gray-400 text-sm">Pastikan jenis ujian yang dipilih di Dashboard benar-benar ada di Database Excel (Hati-hati dengan typo atau spasi ekstra).</p></div>`;
+                    }
+                    return;
+                }
 
                 let lvlLC = level.toLowerCase();
                 let jenisUtamaLvl = "UJIAN";
@@ -1344,7 +1387,7 @@
                     let chk = document.getElementById(`chk-${lvlLC}-${i}`);
                     let ujiSelect = document.getElementById(`uji-${lvlLC}-${i}`);
                     if(chk && chk.checked && ujiSelect && ujiSelect.value) {
-                        jenisUtamaLvl = ujiSelect.value; break;
+                        jenisUtamaLvl = ujiSelect.value.toUpperCase(); break;
                     }
                 }
 
@@ -1355,15 +1398,15 @@
                 if (level === 'SD') {
                     rombelsBawah = allRombels.filter(r => parseInt(r.match(/\d+/)[0]) <= 4);
                     rombelsAtas = allRombels.filter(r => parseInt(r.match(/\d+/)[0]) >= 5);
-                    thBawahText = "WAKTU KLS 1-4"; thAtasText = "WAKTU KLS 5-6";
+                    thBawahText = "WAKTU KELAS 1-4"; thAtasText = "WAKTU KELAS 5-6";
                 } else if (level === 'SMP') {
                     rombelsBawah = allRombels.filter(r => parseInt(r.match(/\d+/)[0]) <= 8);
                     rombelsAtas = allRombels.filter(r => parseInt(r.match(/\d+/)[0]) === 9);
-                    thBawahText = "WAKTU KLS 7-8"; thAtasText = "WAKTU KLS 9";
+                    thBawahText = "WAKTU KELAS 7-8"; thAtasText = "WAKTU KELAS 9";
                 } else if (level === 'SMA') {
                     rombelsBawah = allRombels.filter(r => parseInt(r.match(/\d+/)[0]) <= 11);
                     rombelsAtas = allRombels.filter(r => parseInt(r.match(/\d+/)[0]) === 12);
-                    thBawahText = "WAKTU KLS 10-11"; thAtasText = "WAKTU KLS 12";
+                    thBawahText = "WAKTU KELAS 10-11"; thAtasText = "WAKTU KELAS 12";
                 }
 
                 let color = level === 'SD' ? 'green' : (level === 'SMP' ? 'blue' : 'red');
@@ -1423,12 +1466,21 @@
                     
                     let totalRowSpanHari = 0;
                     data.sessions.forEach(s => { 
-                        // Baris dicetak jika ada mapel aktif atau isBreak, abaikan jika full Pulang di kedua kubu kecuali mau dipaksa muncul
-                        let hasPengawas = !s.isBreak && s.pengawas && Object.keys(s.pengawas).length > 0;
-                        totalRowSpanHari += hasPengawas ? 2 : 1; 
+                        // Baris selalu dicetak untuk mempertahankan 5/6 urutan logis
+                        let hasPengawas = s.type === 'sesi' && s.pengawas && Object.keys(s.pengawas).length > 0;
+                        let validToPrint = true;
+                        // Kalau dua-duanya pulang di baris istirahat/sesi, hide baris tsb? 
+                        // Boleh, biar rapi. Kalau break dan dua-duanya pulang, hide aja.
+                        if (s.isPulangBawah && s.isPulangAtas && s.type !== 'sesi') validToPrint = false;
+                        
+                        if(validToPrint) totalRowSpanHari += hasPengawas ? 2 : 1; 
                     });
 
                     data.sessions.forEach((sesi, i) => {
+                        let validToPrint = true;
+                        if (sesi.isPulangBawah && sesi.isPulangAtas && sesi.type !== 'sesi') validToPrint = false;
+                        if (!validToPrint) return;
+
                         html += `<tr>`;
                         if(i === 0) html += `<td rowspan="${totalRowSpanHari}" class="font-bold bg-white-cell border-black-custom">${hari}</td>`;
                         
@@ -1437,8 +1489,9 @@
                         // PRINT BAGIAN KELAS BAWAH
                         if(rombelsBawah.length > 0) {
                             html += `<td class="font-bold bg-white-cell border-black-custom col-waktu">${sesi.waktu_bawah}</td>`;
-                            if(sesi.isBreak) {
-                                html += `<td colspan="${rombelsBawah.length}" class="font-bold text-sm bg-gray-200 border-black-custom border-l-2-black uppercase tracking-widest">${sesi.mapelUtama[rombelsBawah[0]] || ''}</td>`;
+                            if(sesi.type === 'break' || sesi.type === 'dzikir') {
+                                let labelBreak = sesi.isPulangBawah ? "PULANG" : (sesi.type === 'dzikir' ? "DZIKIR, DHUHA & MUROJA'AH" : "ISTIRAHAT");
+                                html += `<td colspan="${rombelsBawah.length}" class="font-bold text-sm bg-gray-200-cell border-black-custom border-l-2-black uppercase tracking-widest">${labelBreak}</td>`;
                             } else {
                                 rombelsBawah.forEach((r) => html += `<td class="font-bold text-sm bg-white-cell border-black-custom border-l-2-black">${sesi.mapelUtama[r] || '-'}</td>`);
                             }
@@ -1447,8 +1500,9 @@
                         // PRINT BAGIAN KELAS ATAS
                         if(rombelsAtas.length > 0) {
                             html += `<td class="font-bold bg-white-cell border-black-custom border-l-2-black col-waktu">${sesi.waktu_atas}</td>`;
-                            if(sesi.isBreak) {
-                                html += `<td colspan="${rombelsAtas.length}" class="font-bold text-sm bg-gray-200 border-black-custom uppercase tracking-widest">${sesi.mapelUtama[rombelsAtas[0]] || ''}</td>`;
+                            if(sesi.type === 'break' || sesi.type === 'dzikir') {
+                                let labelBreak = sesi.isPulangAtas ? "PULANG" : (sesi.type === 'dzikir' ? "DZIKIR, DHUHA & MUROJA'AH" : "ISTIRAHAT");
+                                html += `<td colspan="${rombelsAtas.length}" class="font-bold text-sm bg-gray-200-cell border-black-custom uppercase tracking-widest">${labelBreak}</td>`;
                             } else {
                                 rombelsAtas.forEach((r) => html += `<td class="font-bold text-sm bg-white-cell border-black-custom border-l-2-black">${sesi.mapelUtama[r] || '-'}</td>`);
                             }
@@ -1457,7 +1511,7 @@
                         html += `</tr>`;
 
                         // BARIS PENGAWAS
-                        let hasPengawas = !sesi.isBreak && sesi.pengawas && Object.keys(sesi.pengawas).length > 0;
+                        let hasPengawas = sesi.type === 'sesi' && sesi.pengawas && Object.keys(sesi.pengawas).length > 0;
                         if(hasPengawas) {
                             html += `<tr class="pengawas-row">`;
                             if (rombelsBawah.length > 0) {
@@ -1469,7 +1523,6 @@
                             }
 
                             if (rombelsAtas.length > 0) {
-                                // Kolom waktu atas bertindak sebagai label pengawas
                                 html += `<td class="bg-pengawas-${lvlLC} font-bold text-right pr-4 border-black-custom border-l-2-black">Pengawas</td>`;
                                 rombelsAtas.forEach(rom => {
                                     let g = (sesi.pengawas && sesi.pengawas[rom]) ? sesi.pengawas[rom] : [];
@@ -1518,7 +1571,7 @@
             'bg-pengawas-sma': { f: 'FF450A0A', c: 'FFFFFFFF', b: true },
             'bg-nama-sma': { f: 'FFB91C1C', c: 'FFFFFFFF', b: false },
             'bg-white-cell': { f: 'FFFFFFFF', c: 'FF000000', b: false },
-            'bg-gray-200': { f: 'FFE5E7EB', c: 'FF000000', b: true }
+            'bg-gray-200-cell': { f: 'FFE5E7EB', c: 'FF000000', b: true }
         };
 
         async function processTableToExcel(ws, tableId, level, skipPengawas) {
@@ -1531,7 +1584,7 @@
             for(let i=1; i<=12; i++) {
                 let ujiSelect = document.getElementById(`uji-${lvlLC}-${i}`);
                 if(document.getElementById(`chk-${lvlLC}-${i}`)?.checked && ujiSelect && ujiSelect.value) {
-                    jenisUtamaLvl = ujiSelect.value; break;
+                    jenisUtamaLvl = ujiSelect.value.toUpperCase(); break;
                 }
             }
 
@@ -1613,9 +1666,9 @@
                 excelRowIdx++;
             }
             ws.columns.forEach((col, i) => {
-                if (i === 0) col.width = 15; // Hari
-                else if (i === 1) col.width = 8;  // Jam
-                else col.width = 15; // Waktu & Rombel
+                if (i === 0) col.width = 15; 
+                else if (i === 1) col.width = 8;  
+                else col.width = 15; 
             });
         }
 
@@ -1709,7 +1762,7 @@
             sesi.innerHTML = '<option value="">Sesi Mapel</option>';
             if(hari && currentScheduleData[hari] && currentScheduleData[hari][lvl]) {
                 let maxS = 0;
-                currentScheduleData[hari][lvl].sessions.forEach(s => { if(!s.isBreak && s.jam > maxS) maxS = s.jam; });
+                currentScheduleData[hari][lvl].sessions.forEach(s => { if(s.type === 'sesi' && s.jam > maxS) maxS = s.jam; });
                 for(let i=1; i<=maxS; i++) sesi.innerHTML += `<option value="${i}">Sesi ${i}</option>`;
                 if(prefix === 'tambah-tgt') sesi.innerHTML += `<option value="NEW" class="text-neonGold font-bold">+ Buat Sesi Baru</option>`;
             }
@@ -1724,7 +1777,7 @@
             availableDays.forEach(h => {
                 if(currentScheduleData[h] && currentScheduleData[h][lvl]) {
                     currentScheduleData[h][lvl].sessions.forEach(s => {
-                        if(!s.isBreak && s.mapelUtama) {
+                        if(s.type === 'sesi' && s.mapelUtama) {
                             let targetRombels = currentScheduleData[h][lvl].rombels.filter(r => r.match(/\d+/)[0] === kelasNum);
                             if(targetRombels.length > 0 && s.mapelUtama[targetRombels[0]] && s.mapelUtama[targetRombels[0]] !== "-" && s.mapelUtama[targetRombels[0]] !== "Pulang") {
                                 let mapelName = s.mapelUtama[targetRombels[0]];
@@ -1748,8 +1801,8 @@
 
             if(!lvl || !kelasNum || !sHari || !sJam || !tHari || !tJam) { alert.innerText = "Lengkapi form!"; alert.classList.remove('hidden'); return; }
 
-            let sSesiObj = currentScheduleData[sHari][lvl].sessions.find(x => !x.isBreak && x.jam === sJam);
-            let tSesiObj = currentScheduleData[tHari][lvl].sessions.find(x => !x.isBreak && x.jam === tJam);
+            let sSesiObj = currentScheduleData[sHari][lvl].sessions.find(x => x.type === 'sesi' && x.jam === sJam);
+            let tSesiObj = currentScheduleData[tHari][lvl].sessions.find(x => x.type === 'sesi' && x.jam === tJam);
             let targetRombels = currentScheduleData[sHari][lvl].rombels.filter(r => r.match(/\d+/)[0] === kelasNum);
 
             targetRombels.forEach(r => {
@@ -1774,7 +1827,7 @@
             if(!lvl || !kelasNum || !hari || !jam) { alert.innerText = "Lengkapi form!"; alert.classList.remove('hidden'); return; }
 
             let targetRombels = currentScheduleData[hari][lvl].rombels.filter(r => r.match(/\d+/)[0] === kelasNum);
-            let sesiObj = currentScheduleData[hari][lvl].sessions.find(x => !x.isBreak && x.jam === jam);
+            let sesiObj = currentScheduleData[hari][lvl].sessions.find(x => x.type === 'sesi' && x.jam === jam);
             targetRombels.forEach(r => {
                 if(sesiObj && sesiObj.mapelUtama) {
                     sesiObj.mapelUtama[r] = "-";
@@ -1782,7 +1835,6 @@
                 }
             });
 
-            // Cleanup empty sessions logic simplified: just recalculate, the logic in recalculate handles empty cells.
             recalculateTimesAndBreaks(lvl); reassignPengawas(); renderAllMatrices();
             closeModal('modal-mapel-hapus'); showToast(`Sesi Kelas ${kelasNum} dihapus.`);
         }
@@ -1802,7 +1854,7 @@
             let tJam = tJamStr === 'NEW' ? 'NEW' : parseInt(tJamStr);
             let targetRombels = currentScheduleData[sHari][lvl].rombels.filter(r => r.match(/\d+/)[0] === kelasNum);
 
-            let sSesiObj = currentScheduleData[sHari][lvl].sessions.find(x => !x.isBreak && x.jam === sJam);
+            let sSesiObj = currentScheduleData[sHari][lvl].sessions.find(x => x.type === 'sesi' && x.jam === sJam);
             targetRombels.forEach(r => { if(sSesiObj.mapelUtama) sSesiObj.mapelUtama[r] = "-"; });
 
             let dataTgt = currentScheduleData[tHari][lvl];
@@ -1810,14 +1862,15 @@
 
             if (tJam === 'NEW') {
                 let maxS = 0;
-                dataTgt.sessions.forEach(s => { if(!s.isBreak && s.jam > maxS) maxS = s.jam; });
+                dataTgt.sessions.forEach(s => { if(s.type === 'sesi' && s.jam > maxS) maxS = s.jam; });
                 let newJam = maxS + 1;
-                tSesiObj = { jam: newJam, mapelUtama: {}, pengawas: {}, isBreak: false };
+                // Simplified insertion
+                tSesiObj = { type:'sesi', jam: newJam, mapelUtama: {}, pengawas: {}, isPulangBawah:false, isPulangAtas:false };
                 dataTgt.rombels.forEach(r => tSesiObj.mapelUtama[r] = "-");
-                dataTgt.sessions.push(tSesiObj); // Might need a break before it, simplified for now
+                dataTgt.sessions.push(tSesiObj); 
                 tJam = newJam; 
             } else {
-                tSesiObj = dataTgt.sessions.find(x => !x.isBreak && x.jam === tJam);
+                tSesiObj = dataTgt.sessions.find(x => x.type === 'sesi' && x.jam === tJam);
             }
 
             targetRombels.forEach(r => { if(tSesiObj.mapelUtama) tSesiObj.mapelUtama[r] = namaMapel; });
@@ -1932,7 +1985,7 @@
                         ['SD', 'SMP', 'SMA'].forEach(l => {
                             if(currentScheduleData[h][l]) {
                                 currentScheduleData[h][l].sessions.forEach(sec => {
-                                    if(!sec.isBreak && sec.jam > maxS) maxS = sec.jam;
+                                    if(sec.type === 'sesi' && sec.jam > maxS) maxS = sec.jam;
                                 });
                             }
                         });
@@ -1954,7 +2007,7 @@
             ['SD','SMP','SMA'].forEach(lvl => {
                 if(currentScheduleData[h]?.[lvl]) {
                     currentScheduleData[h][lvl].sessions.forEach(sesi => {
-                        if(sesi.pengawas) {
+                        if(sesi.type === 'sesi' && sesi.pengawas) {
                             for(let r in sesi.pengawas) if(sesi.pengawas[r].includes(g)) list.push({j: sesi.jam, w: getKelompokKelas(lvl, r) === 'bawah' ? sesi.waktu_bawah : sesi.waktu_atas, l: lvl, r: r, m: sesi.mapelUtama[r]});
                         }
                     });
@@ -1970,7 +2023,7 @@
             let assigned = [];
             ['SD','SMP','SMA'].forEach(lvl => {
                 if(currentScheduleData[h]?.[lvl]) {
-                    const sd = currentScheduleData[h][lvl].sessions.find(x => x.jam === s);
+                    const sd = currentScheduleData[h][lvl].sessions.find(x => x.type === 'sesi' && x.jam === s);
                     if(sd && sd.pengawas) for(let r in sd.pengawas) assigned.push(...sd.pengawas[r]);
                 }
             });
@@ -1990,7 +2043,7 @@
                 for(let l in currentScheduleData[h]) {
                     if(currentScheduleData[h][l]) {
                         currentScheduleData[h][l].sessions.forEach(s => { 
-                             if(!s.isBreak && s.pengawas) { 
+                             if(s.type === 'sesi' && s.pengawas) { 
                                  for(let r in s.pengawas) {
                                     if(s.pengawas[r]) {
                                         s.pengawas[r].forEach(g => { if(counts[g] !== undefined) counts[g]++ });
@@ -2026,7 +2079,7 @@
             if(!h || !l) return;
             let maxS = 0;
             if(currentScheduleData[h] && currentScheduleData[h][l]) {
-                currentScheduleData[h][l].sessions.forEach(s => { if(!s.isBreak && s.jam > maxS) maxS = s.jam; });
+                currentScheduleData[h][l].sessions.forEach(s => { if(s.type === 'sesi' && s.jam > maxS) maxS = s.jam; });
             }
             for(let i=1; i<=maxS; i++) sesi.innerHTML += `<option value="${i}">Sesi ${i}</option>`;
         }
@@ -2052,8 +2105,8 @@
             out.innerHTML = '<option value="">-- Pilih Aksi --</option>';
             out.innerHTML += '<option value="ADD_ONLY" class="text-green-400 font-bold">➕ Tidak Ada (Hanya Tambah)</option>';
             if(h && s && l && r && currentScheduleData[h][l]) {
-                const sesi = currentScheduleData[h][l].sessions.find(x => x.jam === s);
-                if(sesi && !sesi.isBreak && sesi.pengawas && sesi.pengawas[r]) {
+                const sesi = currentScheduleData[h][l].sessions.find(x => x.type === 'sesi' && x.jam === s);
+                if(sesi && sesi.pengawas && sesi.pengawas[r]) {
                     sesi.pengawas[r].forEach(g => out.innerHTML += `<option value="${g}">Ganti: ${g}</option>`);
                 }
             }
@@ -2068,7 +2121,7 @@
             let assigned = [];
             ['SD','SMP','SMA'].forEach(lvl => {
                 if(currentScheduleData[h]?.[lvl]) {
-                    const sd = currentScheduleData[h][lvl].sessions.find(x => x.jam === s);
+                    const sd = currentScheduleData[h][lvl].sessions.find(x => x.type === 'sesi' && x.jam === s);
                     if(sd && sd.pengawas) for(let r in sd.pengawas) assigned.push(...sd.pengawas[r]);
                 }
             });
@@ -2088,7 +2141,7 @@
 
             if(!h || !s || !l || !r || !outT || !inT) { alert.innerText = "Lengkapi data!"; alert.classList.remove('hidden'); return; }
 
-            const sesiData = currentScheduleData[h]?.[l]?.sessions.find(x => x.jam === s);
+            const sesiData = currentScheduleData[h]?.[l]?.sessions.find(x => x.type === 'sesi' && x.jam === s);
             let success = false;
             if(sesiData) {
                 if(!sesiData.pengawas[r]) sesiData.pengawas[r] = [];
@@ -2121,7 +2174,7 @@
             ['SD','SMP','SMA'].forEach(lvl => {
                 if(currentScheduleData[h]?.[lvl]) {
                     currentScheduleData[h][lvl].sessions.forEach(s => {
-                        if(!s.isBreak && s.pengawas) {
+                        if(s.type === 'sesi' && s.pengawas) {
                             for(let r in s.pengawas) { s.pengawas[r].forEach(g => assignedGurus.add(g)); }
                         }
                     });
@@ -2145,7 +2198,7 @@
             ['SD','SMP','SMA'].forEach(lvl => {
                 if(currentScheduleData[h]?.[lvl]) {
                     currentScheduleData[h][lvl].sessions.forEach(s => {
-                        if(!s.isBreak && s.pengawas) {
+                        if(s.type === 'sesi' && s.pengawas) {
                             for(let r in s.pengawas) {
                                 if(s.pengawas[r].includes(g)) {
                                     let mapel = s.mapelUtama[r] || "-";
@@ -2182,7 +2235,7 @@
             let assigned = [];
             ['SD','SMP','SMA'].forEach(lvl => {
                 if(currentScheduleData[h] && currentScheduleData[h][lvl]) {
-                    const sd = currentScheduleData[h][lvl].sessions.find(x => x.jam === s);
+                    const sd = currentScheduleData[h][lvl].sessions.find(x => x.type === 'sesi' && x.jam === s);
                     if(sd && sd.pengawas) for(let r in sd.pengawas) assigned.push(...sd.pengawas[r]);
                 }
             });
@@ -2207,10 +2260,10 @@
             const s = data.sesi; const lvl = data.tingkat;
             const replacedRombel = data.rombel; const replacedMapel = data.mapel; const replacedWaktu = data.waktu; 
 
-            const sesiData = currentScheduleData[h]?.[lvl]?.sessions.find(x => x.jam === s);
+            const sesiData = currentScheduleData[h]?.[lvl]?.sessions.find(x => x.type === 'sesi' && x.jam === s);
             let found = false;
             
-            if(sesiData && !sesiData.isBreak && sesiData.pengawas && sesiData.pengawas[replacedRombel]) {
+            if(sesiData && sesiData.type === 'sesi' && sesiData.pengawas && sesiData.pengawas[replacedRombel]) {
                 let idx = sesiData.pengawas[replacedRombel].indexOf(outT);
                 if(idx !== -1) { sesiData.pengawas[replacedRombel][idx] = inT; found = true; }
             }
