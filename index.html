@@ -67,16 +67,16 @@
         .futuristic-input:focus { border-color: #fadb5f; box-shadow: 0 0 10px rgba(220, 184, 88, 0.3); outline: none; }
         .futuristic-input option { background-color: #0f274c; color: white; }
 
-        /* Gaya Tabel Matriks - DIPERBAIKI: table-layout: fixed & word-wrap */
-        .matrix-table { table-layout: fixed; width: 100%; border-collapse: collapse; }
-        .matrix-table th, .matrix-table td { border: 1px solid #000; text-align: center; vertical-align: middle; padding: 4px 6px; word-wrap: break-word; }
+        /* Gaya Tabel Matriks - KEMBALI KE AUTO WIDTH (BUANG TABLE-LAYOUT: FIXED) */
+        .matrix-table { width: 100%; border-collapse: collapse; }
+        .matrix-table th, .matrix-table td { border: 1px solid #000; text-align: center; vertical-align: middle; padding: 4px 6px; }
         
-        /* Lebar Kolom Spesifik untuk Tabel HTML agar Rapi */
-        .col-hari { width: 100px; }
-        .col-jam { width: 50px; }
-        .col-waktu { width: 110px; }
-
-        /* Mencegah teks patah di header kelas (Solusi "1 Inter 4") */
+        /* Lebar Kolom Spesifik agar konsisten (Khusus kolom Waktu dibuat fixed width biar gak penyok) */
+        .col-hari { width: 120px; min-width: 100px; }
+        .col-jam { width: 60px; }
+        .col-waktu { width: 140px; min-width: 120px; }
+        
+        /* Mencegah Teks Gepeng / Mi Instan */
         .nowrap-text { white-space: nowrap; }
 
         /* Warna Tema per Tingkat */
@@ -641,7 +641,6 @@
         <p class="text-blue-500 font-bold italic tracking-wide">Endless Spirit of Lifelong Learner</p>
     </div>
 
-    <!-- Script Logika Javascript -->
     <script>
         // Setup API Backend Google Apps Script
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyjOGDb8-NdCzVFyouZgEWwOMuiut1xf47KJ3-YKZTL1chKneet-9WVis3x3WwiI-Vy/exec';
@@ -888,7 +887,6 @@
             return array;
         }
 
-        // Fungsi Helper untuk mengeksekusi refresh jadwal spesifik per jenjang
         window.refreshLevel = function(levelToRefresh) {
             reassignPengawas(levelToRefresh);
             renderAllMatrices();
@@ -905,7 +903,7 @@
         });
 
         document.getElementById('btn-refresh').addEventListener('click', () => {
-            reassignPengawas(); // Default refresh semua
+            reassignPengawas(); 
             renderAllMatrices();
             showToast("Semua Pengawas berhasil diacak ulang!");
         });
@@ -946,7 +944,6 @@
             return dedicated;
         }
 
-        // IMPLEMENTASI ATURAN EMAS (Anti Berurutan, Anti Lintas Kelompok, VIP Walas)
         function reassignPengawas(targetLevel = null) {
             let workload = {};
             masterGurus.forEach(g => workload[g.Nama_Guru] = 0);
@@ -954,9 +951,8 @@
             let dedicatedSD13 = getActiveDedicatedGurus();
 
             availableDays.forEach(hari => {
-                // Tracking memori guru dalam satu hari
                 let assignedGurusToday = new Set();
-                let historyGuruToday = {}; // { "Nama": [{sesi: 1, kelompok: 'bawah'}, {sesi: 3, kelompok: 'bawah'}] }
+                let historyGuruToday = {}; 
 
                 let levelsToProcess = targetLevel ? [targetLevel] : ['SD', 'SMP', 'SMA'];
 
@@ -992,7 +988,6 @@
                                 names = names.filter(n => n !== savedSetupData.ketua);
                                                                 
                                 if(names.length === 0 && isKetuaHere) {
-                                    // Cari pengganti wali kelas (Pinjaman)
                                     let backupGuru = masterGurus.filter(g => {
                                         return g.Nama_Guru !== savedSetupData.ketua && 
                                                g.Jenjang_Diajar === 'SD' && 
@@ -1026,13 +1021,8 @@
                                     let n = g.Nama_Guru;
                                     let hist = historyGuruToday[n] || [];
 
-                                    // Cek Bentrok Di Sesi Yang Sama (Lintas Kelas)
                                     if(hist.some(h => h.sesi === sesi.jam)) return false;
-
-                                    // ATURAN EMAS 1: Anti Ngawas Berurutan (1-2 atau 2-3)
                                     if(hist.some(h => Math.abs(h.sesi - sesi.jam) === 1)) return false;
-
-                                    // ATURAN EMAS 2: Anti Lintas Kelompok Waktu
                                     if(hist.length > 0 && hist[0].kelompok !== kelompok) return false;
 
                                     return true;
@@ -1058,7 +1048,6 @@
             });
         }
 
-        // OBAT PERBAIKAN 1: SINKRONISASI PEMBACAAN CHUNK WAKTU 
         function buildScheduleState(isRefresh = false) {
             currentScheduleData = { replacements: [] }; 
              const startDate = new Date(savedSetupData.tglMulai || new Date());
@@ -1138,25 +1127,22 @@
                 let rombelChunks = {};
                 for(let r in rombelMap) { rombelChunks[r] = Array.from({length: totalDays}, () => []); }
 
-                // Pengecekan Validitas sekarang beda per Kelompok (Bawah/Atas)
-                function isValidChunk(allChunksForRombel, targetDayIndex, newMapel, tingkat, kelompok) {
+                function isValidChunk(allChunksForRombel, targetDayIndex, newMapel, tingkat) {
                     if(!allChunksForRombel || !allChunksForRombel[targetDayIndex]) return false;
                     let chunk = allChunksForRombel[targetDayIndex];
                     let temp = [...chunk, newMapel];
                     let maxM = temp.length;
 
+                    // Hitung batas waktu pakai Default/Bawah biar aman
                     let dayString = availableDays[targetDayIndex];
-                    let userSet = getDayTimeSettings(lvl.id, dayString, kelompok);
+                    let userSet = getDayTimeSettings(lvl.id, dayString, 'bawah');
                     let [uH, uM] = userSet.start.split(':').map(Number);
                     
                     let startMins = (uH * 60) + uM;
                     let totalExam = temp.reduce((s, m) => s + getSafeDuration(m), 0);
                     
                     let breakTime = 0;
-                    for (let x = 0; x < maxM - 1; x++) {
-                        breakTime += (x === 0) ? userSet.break1 : userSet.break2;
-                    }
-                    
+                    for (let x = 0; x < maxM - 1; x++) { breakTime += (x === 0) ? userSet.break1 : userSet.break2; }
                     let endMins = startMins + totalExam + breakTime;
                     if (endMins > 12 * 60) return false; 
 
@@ -1164,7 +1150,7 @@
                     let isSMP = lvl.id === 'SMP';
                     let isSMA = lvl.id === 'SMA';
                     let isKelasBawah = isSD && (tingkat >= 1 && tingkat <= 2); 
-                     let isKelasAtasSD = isSD && (tingkat >= 3 && tingkat <= 6);
+                    let isKelasAtasSD = isSD && (tingkat >= 3 && tingkat <= 6);
 
                     if ((isSMP || isSMA) && isExact(newMapel) && chunk.some(x => isExact(x))) return false;
 
@@ -1201,12 +1187,7 @@
                     for (let r in rombelMap) {
                         let mObj = rombelMap[r].find(x => getFuzzyMapelGroup(x.Mata_Pelajaran) === groupName);
                         if (mObj) {
-                            targetRombels.push({ 
-                                rombel: r, 
-                                mapelObj: mObj, 
-                                tingkat: rombelTingkat[r],
-                                kelompok: getKelompokKelas(lvl.id, r)
-                            });
+                            targetRombels.push({ rombel: r, mapelObj: mObj, tingkat: rombelTingkat[r] });
                         }
                     }
 
@@ -1224,7 +1205,7 @@
                             if(!rombelChunks[tr.rombel] || !rombelChunks[tr.rombel][d]) { isValidForAll = false; break; }
                             let chunk = rombelChunks[tr.rombel][d];
                             totalLoad += chunk.length;
-                            if (!isValidChunk(rombelChunks[tr.rombel], d, tr.mapelObj, tr.tingkat, tr.kelompok)) {
+                            if (!isValidChunk(rombelChunks[tr.rombel], d, tr.mapelObj, tr.tingkat)) {
                                 isValidForAll = false; break;
                             }
                         }
@@ -1234,42 +1215,6 @@
                     if (bestScores.length > 0) {
                         bestScores.sort((a,b) => a.score - b.score);
                         placedDay = bestScores[0].day;
-                    }
-
-                    if (placedDay === -1) {
-                        let fallbackScores = [];
-                        
-                        for(let d of dayIndices) {
-                            let dayString = availableDays[d];
-                            let canFitJam12 = true;
-                            let totalLoad = 0;
-                            
-                            for (let tr of targetRombels) {
-                                if(!rombelChunks[tr.rombel] || !rombelChunks[tr.rombel][d]) { canFitJam12 = false; break; }
-                                let userSet = getDayTimeSettings(lvl.id, dayString, tr.kelompok);
-                                let [uH, uM] = userSet.start.split(':').map(Number);
-                                
-                                let chunk = rombelChunks[tr.rombel][d];
-                                totalLoad += chunk.length;
-                                let temp = [...chunk, tr.mapelObj];
-                                let maxM = temp.length;
-                                
-                                let startMins = (uH * 60) + uM;
-                                let totalExam = temp.reduce((s, x) => s + getSafeDuration(x), 0);
-                                
-                                let breakTime = 0;
-                                for (let x = 0; x < maxM - 1; x++) breakTime += (x === 0) ? userSet.break1 : userSet.break2;
-                                
-                                if ((startMins + totalExam + breakTime) > 12 * 60) { canFitJam12 = false; break; }
-                                if (lvl.id === 'SD' && maxM > 2) { canFitJam12 = false; break; }
-                                if ((lvl.id === 'SMP' || lvl.id === 'SMA') && maxM > 3) { canFitJam12 = false; break; }
-                            }
-                            if (canFitJam12) fallbackScores.push({day: d, score: totalLoad});
-                        }
-                        if(fallbackScores.length > 0) {
-                            fallbackScores.sort((a,b) => a.score - b.score);
-                            placedDay = fallbackScores[0].day;
-                        }
                     }
 
                     if (placedDay === -1) {
@@ -1295,11 +1240,11 @@
                 }
 
                 for(let r in rombelMap) {
-                    levelData[lvl.id].push({ rombel: r, tingkat: rombelTingkat[r], kelompok: getKelompokKelas(lvl.id, r), chunks: rombelChunks[r] });
+                    levelData[lvl.id].push({ rombel: r, tingkat: rombelTingkat[r], chunks: rombelChunks[r] });
                 }
             });
 
-            // TAHAP 3: SUSUN SESI MAPEL, DENGAN WAKTU TERPISAH
+            // TAHAP PEMBUATAN SESI HARIAN (SATU GARIS LURUS, TAPI INJECT WAKTU GANDA)
             availableDays.forEach((hari, hariIdx) => {
                 levels.forEach(lvl => {
                     let rombelDataList = levelData[lvl.id];
@@ -1310,7 +1255,6 @@
 
                     let allRombels = rombelDataList.map(rd => rd.rombel);
                     
-                    // Kita cari max mapel keseluruhan hari itu (semua kelas)
                     let maxMapelInDay = 0;
                     rombelDataList.forEach(rd => {
                         let chunk = rd.chunks[hariIdx] || [];
@@ -1319,23 +1263,24 @@
                     
                     if(maxMapelInDay === 0) return;
 
-                    // Mengkalkulasi batas jam secara INDEPENDEN per kelompok (bawah vs atas)
+                    // Mengkalkulasi batas jam Bawah dan Atas
                     let sessionTimes = { bawah: [], atas: [] };
                     
                     ['bawah', 'atas'].forEach(klp => {
-                        let rListKlp = rombelDataList.filter(rd => rd.kelompok === klp);
-                        if(rListKlp.length === 0) return;
-
+                        let rListKlp = rombelDataList.filter(rd => getKelompokKelas(lvl.id, rd.rombel) === klp);
+                        
                         let maxDurKlp = [];
                         for(let i=0; i<maxMapelInDay; i++) maxDurKlp[i] = 0;
 
-                        rListKlp.forEach(rd => {
-                            let chunk = rd.chunks[hariIdx] || [];
-                            chunk.forEach((c, idx) => {
-                                let dur = getSafeDuration(c);
-                                if(dur > maxDurKlp[idx]) maxDurKlp[idx] = dur;
+                        if (rListKlp.length > 0) {
+                            rListKlp.forEach(rd => {
+                                let chunk = rd.chunks[hariIdx] || [];
+                                chunk.forEach((c, idx) => {
+                                    let dur = getSafeDuration(c);
+                                    if(dur > maxDurKlp[idx]) maxDurKlp[idx] = dur;
+                                });
                             });
-                        });
+                        }
 
                         let userSet = getDayTimeSettings(lvl.id, hari, klp);
                         let startSetting = userSet.start; 
@@ -1347,10 +1292,9 @@
 
                         let currentTime = new Date(2000, 0, 1, startH, startM);
                         for(let s = 0; s < maxMapelInDay; s++) {
-                            let dur = maxDurKlp[s] || 0; // kalau 0 berarti sbnrnya udah pulang
+                            let dur = maxDurKlp[s] || 0; 
                             let endTimeSesi = new Date(currentTime.getTime() + dur * 60000);
                             
-                            // Kalau durasi 0, brrt waktu = "-"
                             sessionTimes[klp].push({ jam: s + 1, waktu: dur === 0 ? "-" : formatTime(currentTime) + ' - ' + formatTime(endTimeSesi), isBreak: false });
                             currentTime = endTimeSesi;
 
@@ -1363,38 +1307,30 @@
                         }
                     });
 
-                    // Merging waktu ke dalam struktur data yang LURUS/GLOBAL
                     let dailySessions = [];
-                    let totalSlots = (maxMapelInDay * 2); // 1 mapel + 1 break, kecuali terakhir
+                    let totalSlots = (maxMapelInDay * 2); 
                     
                     for(let i=0; i<totalSlots; i++) {
-                        let tBawah = sessionTimes.bawah.length > i ? sessionTimes.bawah[i] : null;
-                        let tAtas = sessionTimes.atas.length > i ? sessionTimes.atas[i] : null;
+                        let tBawah = sessionTimes.bawah.length > i ? sessionTimes.bawah[i] : { jam: '-', waktu: '-', isBreak: sessionTimes.bawah[i-1]?.isBreak };
+                        let tAtas = sessionTimes.atas.length > i ? sessionTimes.atas[i] : { jam: '-', waktu: '-', isBreak: sessionTimes.atas[i-1]?.isBreak };
 
-                        if(!tBawah && !tAtas) break;
+                        let jamRef = tBawah.jam !== '-' ? tBawah.jam : tAtas.jam;
+                        let isBreak = tBawah.isBreak || tAtas.isBreak;
 
-                        let jamRef = tBawah ? tBawah.jam : tAtas.jam;
-                        let isBreak = tBawah ? tBawah.isBreak : tAtas.isBreak;
+                        if (jamRef === '-' && i > 0) break; // Berhenti kalau beneran abis
 
                         let mapelSesiMap = {};
                         let pengawasMap = {}; 
                         
-                        let waktuGroups = {
-                            bawah: tBawah ? tBawah.waktu : "-",
-                            atas: tAtas ? tAtas.waktu : "-"
-                        };
-
                         if(isBreak) {
                             allRombels.forEach(r => {
-                                let klp = getKelompokKelas(lvl.id, r);
                                 if(i === 0) mapelSesiMap[r] = maxMapelInDay > 2 ? "Dzikir & Muroja'ah" : "Dzikir, Dhuha & Muroja'ah";
                                 else {
-                                    // Cek apakah sblumnya kelas ini ada ujian. Kalo nggak, gausah tulis istirahat.
                                     let rd = rombelDataList.find(x => x.rombel === r);
                                     let chunk = rd.chunks[hariIdx] || [];
-                                    let mapelIndex = (i - 1) / 2; // ngecek array chunk
+                                    let mapelIndex = (i - 1) / 2; 
                                     if(chunk[mapelIndex]) mapelSesiMap[r] = "Istirahat";
-                                    else mapelSesiMap[r] = "Pulang";
+                                    else mapelSesiMap[r] = "Pulang"; // Kalau udah ga ada ujian selanjutnya
                                 }
                             });
                         } else {
@@ -1409,9 +1345,9 @@
 
                         dailySessions.push({ 
                             jam: jamRef, 
-                            waktu: waktuGroups.bawah, // untuk kompatibilitas code excel export
-                            waktu_bawah: waktuGroups.bawah, 
-                            waktu_atas: waktuGroups.atas,
+                            waktu: tBawah.waktu, 
+                            waktu_bawah: tBawah.waktu, 
+                            waktu_atas: tAtas.waktu,
                             mapelUtama: mapelSesiMap, 
                             pengawas: pengawasMap, 
                             isBreak: isBreak 
@@ -1430,12 +1366,10 @@
                 if(!currentScheduleData[hari] || !currentScheduleData[hari][lvl]) return;
                 let data = currentScheduleData[hari][lvl];
                 
-                // Ambil daftar sesi bersih (buang break)
                 let activeMapelSessions = data.sessions.filter(s => !s.isBreak);
                 let numMapel = activeMapelSessions.length;
                 if(numMapel === 0) return;
 
-                // Hitung ulang Durasi per kelompok
                 let maxDurations = { bawah: [], atas: [] };
                 for(let i=0; i<numMapel; i++) { maxDurations.bawah.push(0); maxDurations.atas.push(0); }
 
@@ -1454,7 +1388,6 @@
                     });
                 });
 
-                // Regenerate time strings
                 let sessionTimes = { bawah: [], atas: [] };
                 ['bawah', 'atas'].forEach(klp => {
                     let userSet = getDayTimeSettings(lvl, hari, klp);
@@ -1463,29 +1396,28 @@
                     
                     let dzikirStartTime = new Date(2000, 0, 1, 7, 0); 
                     let endTimeDzikir = new Date(2000, 0, 1, startH, startM);
-                    sessionTimes[klp].push(formatTime(dzikirStartTime) + ' - ' + formatTime(endTimeDzikir)); // break awal
+                    sessionTimes[klp].push(formatTime(dzikirStartTime) + ' - ' + formatTime(endTimeDzikir)); 
                     
                     let currentTime = new Date(2000, 0, 1, startH, startM);
                     for(let i=0; i<numMapel; i++) {
                         let dur = maxDurations[klp][i];
                         let endTimeSesi = new Date(currentTime.getTime() + dur * 60000);
-                        sessionTimes[klp].push(dur === 0 ? "-" : formatTime(currentTime) + ' - ' + formatTime(endTimeSesi)); // mapel
+                        sessionTimes[klp].push(dur === 0 ? "-" : formatTime(currentTime) + ' - ' + formatTime(endTimeSesi)); 
                         currentTime = endTimeSesi;
                         
                         if(i < numMapel - 1) {
                             let breakDur = (i === 0) ? userSet.break1 : userSet.break2; 
                             let breakEnd = new Date(currentTime.getTime() + breakDur * 60000); 
-                            sessionTimes[klp].push(dur === 0 ? "-" : formatTime(currentTime) + ' - ' + formatTime(breakEnd)); // break
+                            sessionTimes[klp].push(dur === 0 ? "-" : formatTime(currentTime) + ' - ' + formatTime(breakEnd)); 
                             currentTime = breakEnd;
                         }
                     }
                 });
 
-                // Apply to original array
                 data.sessions.forEach((s, i) => {
                     s.waktu_bawah = sessionTimes.bawah[i];
                     s.waktu_atas = sessionTimes.atas[i];
-                    s.waktu = sessionTimes.bawah[i]; // fallback
+                    s.waktu = sessionTimes.bawah[i]; 
                 });
             });
         }
@@ -1736,7 +1668,6 @@
         window.openEditorWaktu = function(lvl) {
             document.getElementById('edit-waktu-lvl').value = lvl;
             
-            // Dynamic text untuk kelompok dropdown
             let txtBawah = "Kelas Bawah";
             let txtAtas = "Kelas Atas";
             if(lvl === 'SD') { txtBawah = "Kelas 1-4"; txtAtas = "Kelas 5-6"; }
@@ -1902,7 +1833,6 @@
              }
         }
 
-        // OBAT PERBAIKAN 2: RENDER TABEL & LEBAR KOLOM
         function renderAllMatrices() {
             const container = document.getElementById('matrix-containers');
             container.innerHTML = '';
@@ -1969,13 +1899,13 @@
                             </button>
                         </div>
                     </div>
-                                        <div id="print-wrapper-${level}" class="print-bg-white bg-white p-4 sm:p-6 rounded-xl shadow-inner text-black mb-8">
+                                        <div id="print-wrapper-${level}" class="print-bg-white bg-white p-4 sm:p-6 rounded-xl shadow-inner text-black mb-8 overflow-x-auto">
                         <div class="text-center mb-6 border-b-[3px] border-black pb-4">
                             <h1 class="text-xl font-black uppercase">PENGAWAS UJIAN ${jenisUtamaLvl} - ${level}</h1>
                             <h2 class="text-lg font-bold uppercase">AL WILDAN ISLAMIC SCHOOL 15 BEKASI</h2>
                             <p class="text-md font-bold uppercase">TAHUN AJARAN ${thn}</p>
                         </div>
-                        <div class="w-full overflow-x-auto">
+                        <div class="w-full">
                             <table id="table-${level}" class="matrix-table text-[10px] sm:text-xs">
                                 <thead>
                                     <tr>
