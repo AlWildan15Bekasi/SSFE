@@ -35,6 +35,7 @@
         }
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    
     <style>
         body { 
             font-family: 'Inter', sans-serif; 
@@ -1151,7 +1152,7 @@
                 if (isPulang) {
                     if(klp === 'bawah') { s.waktu_bawah = "-"; s.isPulangBawah = true; }
                     else { s.waktu_atas = "-"; s.isPulangAtas = true; }
-                    klpRombels.forEach(r => s.mapelUtama[r] = "Pulang");
+                    klpRombels.forEach(r => s.mapelUtama[r] = "-");
                     return;
                 }
 
@@ -1165,7 +1166,7 @@
                     for (let nextIdx = idx + 1; nextIdx < sessions.length; nextIdx++) {
                         let nextS = sessions[nextIdx];
                         if (nextS.type === 'sesi') {
-                            if (klpRombels.some(r => nextS.mapelUtama[r] && nextS.mapelUtama[r] !== "-" && nextS.mapelUtama[r] !== "Pulang")) {
+                            if (klpRombels.some(r => nextS.mapelUtama[r] && nextS.mapelUtama[r] !== "-")) {
                                 hasMoreMapel = true; break;
                             }
                         }
@@ -1175,7 +1176,7 @@
                         isPulang = true;
                         if(klp === 'bawah') { s.waktu_bawah = "-"; s.isPulangBawah = true; }
                         else { s.waktu_atas = "-"; s.isPulangAtas = true; }
-                        klpRombels.forEach(r => s.mapelUtama[r] = "Pulang");
+                        klpRombels.forEach(r => s.mapelUtama[r] = "-");
                     } else {
                         let breakDur = (idx === 2) ? userSet.break1 : userSet.break2; 
                         let breakEnd = new Date(currentTime.getTime() + breakDur * 60000); 
@@ -1188,7 +1189,7 @@
                     let maxDur = 0;
                     klpRombels.forEach(r => {
                         let mName = s.mapelUtama[r];
-                        if (mName && mName !== "-" && mName !== "Pulang") {
+                        if (mName && mName !== "-") {
                             let selectEl = document.getElementById(`uji-${lvl.toLowerCase()}-${r.match(/\d+/)[0]}`);
                             let jenis = selectEl ? selectEl.value : null;
                             let tingkatKls = r.match(/\d+/)[0];
@@ -1204,7 +1205,7 @@
                         isPulang = true;
                         if(klp === 'bawah') { s.waktu_bawah = "-"; s.isPulangBawah = true; }
                         else { s.waktu_atas = "-"; s.isPulangAtas = true; }
-                        klpRombels.forEach(r => s.mapelUtama[r] = "Pulang");
+                        klpRombels.forEach(r => s.mapelUtama[r] = "-");
                     } else {
                         let endTimeSesi = new Date(currentTime.getTime() + maxDur * 60000);
                         let wStr = formatTime(currentTime) + ' - ' + formatTime(endTimeSesi);
@@ -1245,7 +1246,6 @@
             let dedicatedSD13 = getActiveDedicatedGurus();
 
             availableDays.forEach(hari => {
-                let assignedGurusToday = new Set();
                 let historyGuruToday = {}; // { "Nama Guru": [{sesi: 1}, {sesi: 3}] }
 
                 let levelsToProcess = targetLevel ? [targetLevel] : ['SD', 'SMP', 'SMA'];
@@ -1255,19 +1255,20 @@
                     let data = currentScheduleData[hari][lvl];
                     
                     data.sessions.forEach(sesi => {
-                        if(sesi.type !== 'sesi') return; // Cuma nge-plot di baris mapel/sesi
+                        if(sesi.type !== 'sesi') return; 
                         
                         let jenjangAdaUjian = false;
                         for (let r in sesi.mapelUtama) {
-                            if (sesi.mapelUtama[r] && sesi.mapelUtama[r] !== "-" && sesi.mapelUtama[r] !== "Pulang") { jenjangAdaUjian = true; break; }
+                            if (sesi.mapelUtama[r] && sesi.mapelUtama[r] !== "-") { jenjangAdaUjian = true; break; }
                         }
                         if (!jenjangAdaUjian) return;
 
                         let pengawasMap = {};
+                        let assignedGurusCurrentSesi = new Set(); // Track siapa aja yang udah kepilih di sesi ini
 
                         data.rombels.forEach(r => {
                             let mName = sesi.mapelUtama[r];
-                            if(!mName || mName === "-" || mName === "Pulang") return;
+                            if(!mName || mName === "-") return;
 
                             let tingkatMatch = r.match(/\d+/);
                             let tingkat = tingkatMatch ? parseInt(tingkatMatch[0]) : 0;
@@ -1285,7 +1286,7 @@
                                         return g.Nama_Guru !== savedSetupData.ketua && 
                                                g.Jenjang_Diajar === 'SD' && 
                                                !dedicatedSD13.has(g.Nama_Guru) && 
-                                               !assignedGurusToday.has(g.Nama_Guru); 
+                                               !assignedGurusCurrentSesi.has(g.Nama_Guru); 
                                     });
                                     if(backupGuru.length > 0) {
                                         backupGuru.sort((a, b) => workload[a.Nama_Guru] - workload[b.Nama_Guru]);
@@ -1298,7 +1299,7 @@
                                 pengawasMap[r] = names.length > 0 ? names : ["-TBA-"];
                                 names.forEach(n => { 
                                     if(n !== "-TBA-") {
-                                        assignedGurusToday.add(n);
+                                        assignedGurusCurrentSesi.add(n);
                                         if(!historyGuruToday[n]) historyGuruToday[n] = [];
                                         historyGuruToday[n].push({sesi: sesi.jam});
                                         workload[n]++;
@@ -1308,14 +1309,9 @@
                                 // JALUR ARTERI (THE SOFT RULE): Pencarian Guru
                                 let availableForRoom = masterGurus.filter(g => {
                                     if(g.Nama_Guru === savedSetupData.ketua) return false;
-                                    if(g.Jenjang_Diajar !== lvl) return false; // Wajib dari jenjang yang sama (Controlled Chain)
+                                    if(g.Jenjang_Diajar !== lvl) return false; 
                                     if(dedicatedSD13.has(g.Nama_Guru)) return false; 
-                                    
-                                    let n = g.Nama_Guru;
-                                    let hist = historyGuruToday[n] || [];
-
-                                    // Cek apakah guru sedang mengawas di sesi yang sama SAAT INI
-                                    if(hist.some(h => h.sesi === sesi.jam)) return false; // Hard Rule (Tidak boleh ganda)
+                                    if(assignedGurusCurrentSesi.has(g.Nama_Guru)) return false; // Nggak boleh dobel di satu waktu yg sama
 
                                     return true;
                                 });
@@ -1325,13 +1321,12 @@
                                     let hist = historyGuruToday[g.Nama_Guru] || [];
                                     let currentJamNum = parseInt(sesi.jam);
                                     if(!isNaN(currentJamNum)) {
-                                        // Soft Rule: Kalau ada selisih sesi 1 angka, jangan masuk prioritas 1
                                         if(hist.some(h => Math.abs(parseInt(h.sesi) - currentJamNum) === 1)) return false;
                                     }
                                     return true;
                                 });
 
-                                // Fallback: Kalau prioritas 1 habis, terpaksa ambil prioritas 2 (guru yang beruntun tapi 1 jenjang)
+                                // Fallback (Controlled Chain): Ambil prioritas 2 (guru yang beruntun tapi 1 jenjang)
                                 let candidates = priority1.length > 0 ? priority1 : availableForRoom;
                                 let picked = "-TBA-";
 
@@ -1341,7 +1336,7 @@
                                     picked = candidates[0].Nama_Guru;
                                     
                                     workload[picked]++; 
-                                    assignedGurusToday.add(picked); 
+                                    assignedGurusCurrentSesi.add(picked); 
                                     if(!historyGuruToday[picked]) historyGuruToday[picked] = [];
                                     historyGuruToday[picked].push({sesi: sesi.jam});
                                 }
@@ -1372,7 +1367,7 @@
                 }
                 
                 if(!isDataExists) {
-                    // Deteksi kalau SD dicentang tapi hilang
+                    // Deteksi kalau jenjang dicentang tapi hilang
                     let isChecked = false;
                     for(let i=1; i<=12; i++) { if(document.getElementById(`chk-${level.toLowerCase()}-${i}`)?.checked) isChecked=true; }
                     if(isChecked) {
@@ -1466,11 +1461,8 @@
                     
                     let totalRowSpanHari = 0;
                     data.sessions.forEach(s => { 
-                        // Baris selalu dicetak untuk mempertahankan 5/6 urutan logis
                         let hasPengawas = s.type === 'sesi' && s.pengawas && Object.keys(s.pengawas).length > 0;
                         let validToPrint = true;
-                        // Kalau dua-duanya pulang di baris istirahat/sesi, hide baris tsb? 
-                        // Boleh, biar rapi. Kalau break dan dua-duanya pulang, hide aja.
                         if (s.isPulangBawah && s.isPulangAtas && s.type !== 'sesi') validToPrint = false;
                         
                         if(validToPrint) totalRowSpanHari += hasPengawas ? 2 : 1; 
@@ -1490,7 +1482,7 @@
                         if(rombelsBawah.length > 0) {
                             html += `<td class="font-bold bg-white-cell border-black-custom col-waktu">${sesi.waktu_bawah}</td>`;
                             if(sesi.type === 'break' || sesi.type === 'dzikir') {
-                                let labelBreak = sesi.isPulangBawah ? "PULANG" : (sesi.type === 'dzikir' ? "DZIKIR, DHUHA & MUROJA'AH" : "ISTIRAHAT");
+                                let labelBreak = sesi.isPulangBawah ? "-" : (sesi.type === 'dzikir' ? "DZIKIR, DHUHA & MUROJA'AH" : "ISTIRAHAT");
                                 html += `<td colspan="${rombelsBawah.length}" class="font-bold text-sm bg-gray-200-cell border-black-custom border-l-2-black uppercase tracking-widest">${labelBreak}</td>`;
                             } else {
                                 rombelsBawah.forEach((r) => html += `<td class="font-bold text-sm bg-white-cell border-black-custom border-l-2-black">${sesi.mapelUtama[r] || '-'}</td>`);
@@ -1501,7 +1493,7 @@
                         if(rombelsAtas.length > 0) {
                             html += `<td class="font-bold bg-white-cell border-black-custom border-l-2-black col-waktu">${sesi.waktu_atas}</td>`;
                             if(sesi.type === 'break' || sesi.type === 'dzikir') {
-                                let labelBreak = sesi.isPulangAtas ? "PULANG" : (sesi.type === 'dzikir' ? "DZIKIR, DHUHA & MUROJA'AH" : "ISTIRAHAT");
+                                let labelBreak = sesi.isPulangAtas ? "-" : (sesi.type === 'dzikir' ? "DZIKIR, DHUHA & MUROJA'AH" : "ISTIRAHAT");
                                 html += `<td colspan="${rombelsAtas.length}" class="font-bold text-sm bg-gray-200-cell border-black-custom uppercase tracking-widest">${labelBreak}</td>`;
                             } else {
                                 rombelsAtas.forEach((r) => html += `<td class="font-bold text-sm bg-white-cell border-black-custom border-l-2-black">${sesi.mapelUtama[r] || '-'}</td>`);
@@ -1779,7 +1771,7 @@
                     currentScheduleData[h][lvl].sessions.forEach(s => {
                         if(s.type === 'sesi' && s.mapelUtama) {
                             let targetRombels = currentScheduleData[h][lvl].rombels.filter(r => r.match(/\d+/)[0] === kelasNum);
-                            if(targetRombels.length > 0 && s.mapelUtama[targetRombels[0]] && s.mapelUtama[targetRombels[0]] !== "-" && s.mapelUtama[targetRombels[0]] !== "Pulang") {
+                            if(targetRombels.length > 0 && s.mapelUtama[targetRombels[0]] && s.mapelUtama[targetRombels[0]] !== "-") {
                                 let mapelName = s.mapelUtama[targetRombels[0]];
                                 let valString = `${h}|${s.jam}|${mapelName}`;
                                 mapelSel.innerHTML += `<option value="${valString}">${mapelName} (Dari ${h}, Sesi ${s.jam})</option>`;
