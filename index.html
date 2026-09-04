@@ -614,6 +614,35 @@
         </div>
     </div>
 
+    <!-- MODAL BARU: REMINDER WA (Untuk Broadcast per Sesi) -->
+    <div id="modal-reminder-wa" class="modal-overlay">
+        <div class="glass-panel p-8 rounded-xl w-full max-w-sm relative">
+            <h2 class="text-xl font-bold text-orange-400 mb-4 border-b border-orange-400/30 pb-2">💬 Buat Reminder WA</h2>
+            <p class="text-xs text-gray-400 mb-4">Pilih hari dan sesi untuk menyalin teks broadcast pengingat pengawas ujian. Teks akan otomatis tersalin ke Clipboard.</p>
+            
+            <input type="hidden" id="remind-wa-lvl">
+            
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 mb-1">Pilih Hari Ujian</label>
+                    <select id="remind-wa-hari" class="w-full p-2 rounded futuristic-input text-sm" onchange="updateReminderWASesi()"></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 mb-1">Pilih Sesi</label>
+                    <select id="remind-wa-sesi" class="w-full p-2 rounded futuristic-input text-sm border-orange-400/50"><option value="">-</option></select>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <button onclick="closeModal('modal-reminder-wa')" class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-500 text-sm">Batal</button>
+                <button onclick="generateAndCopyReminderWA()" class="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-500 text-sm font-bold shadow-[0_0_10px_rgba(249,115,22,0.5)] flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 2.17.69 4.18 1.83 5.84L2.5 22l4.27-1.12C8.36 21.6 10.12 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm4.5 14c-.2.57-1.14 1.1-1.58 1.14-.4.04-.94.13-2.73-.6-2.14-.88-3.52-3.08-3.63-3.23-.1-.14-.86-1.15-.86-2.18 0-1.04.54-1.55.73-1.78.2-.23.43-.29.58-.29.14 0 .29.01.42.02.13.01.32-.05.5.38.19.46.65 1.58.7 1.69.06.12.1.25.02.43-.08.18-.12.29-.24.43-.13.14-.26.31-.38.41-.14.12-.28.26-.12.5.15.24.68 1.1 1.46 1.88.99.99 1.84 1.3 2.08 1.42.23.12.37.1.51-.06.14-.17.6-1.03.77-1.39.16-.36.31-.3.65-.18.34.12 2.15 1.01 2.52 1.17.37.15.61.23.7.35.09.12.09.7-.1 1.28z"></path></svg>
+                    Salin Teks
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL PILIH HARI UNTUK CETAK REKAP PENGGANTI -->
     <div id="modal-rekap-pdf" class="modal-overlay">
         <div class="glass-panel p-8 rounded-xl w-full max-w-sm relative">
@@ -628,7 +657,7 @@
             <div class="flex flex-col gap-3">
                 <button onclick="copyWAPengganti()" class="w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-500 text-sm font-bold shadow-[0_0_10px_rgba(22,163,74,0.5)] flex items-center justify-center gap-2">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 2.17.69 4.18 1.83 5.84L2.5 22l4.27-1.12C8.36 21.6 10.12 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm4.5 14c-.2.57-1.14 1.1-1.58 1.14-.4.04-.94.13-2.73-.6-2.14-.88-3.52-3.08-3.63-3.23-.1-.14-.86-1.15-.86-2.18 0-1.04.54-1.55.73-1.78.2-.23.43-.29.58-.29.14 0 .29.01.42.02.13.01.32-.05.5.38.19.46.65 1.58.7 1.69.06.12.1.25.02.43-.08.18-.12.29-.24.43-.13.14-.26.31-.38.41-.14.12-.28.26-.12.5.15.24.68 1.1 1.46 1.88.99.99 1.84 1.3 2.08 1.42.23.12.37.1.51-.06.14-.17.6-1.03.77-1.39.16-.36.31-.3.65-.18.34.12 2.15 1.01 2.52 1.17.37.15.61.23.7.35.09.12.09.7-.1 1.28z"></path></svg>
-                    Salin Pesan WA
+                    Salin Pesan WA (Pergantian)
                 </button>
                 <button onclick="generateRekapPDF()" class="w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-500 text-sm font-bold shadow-[0_0_10px_rgba(220,38,38,0.5)]">
                     🖨️ Cetak PDF Rekap
@@ -1420,19 +1449,25 @@
 
                 let color = level === 'SD' ? 'green' : (level === 'SMP' ? 'blue' : 'red');
 
+                // PERUBAHAN: Menghilangkan class preview-only dari Editor Waktu dan Editor Mapel
+                // PERUBAHAN: Menambahkan tombol Reminder WA di Mode Admin
                 let headerButtons = `
                     <button onclick="exportLevelJS('${level}', false)" class="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-3 rounded text-[10px] uppercase tracking-tighter">⬇️ Excel Pengawas</button>
                     <button onclick="exportLevelJS('${level}', true)" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-3 rounded text-[10px] uppercase tracking-tighter">⬇️ Excel Siswa</button>
                     
-                    <button onclick="openEditorWaktu('${level}')" class="preview-only bg-yellow-600 hover:bg-yellow-500 text-schoolBlue font-bold py-2 px-3 rounded text-[10px] uppercase tracking-tighter shadow-[0_0_10px_rgba(250,204,21,0.4)] transition">
+                    <button onclick="openEditorWaktu('${level}')" class="bg-yellow-600 hover:bg-yellow-500 text-schoolBlue font-bold py-2 px-3 rounded text-[10px] uppercase tracking-tighter shadow-[0_0_10px_rgba(250,204,21,0.4)] transition">
                         ⏱️ Editor Waktu
                     </button>
-                    <button onclick="window.openEditorMapelMenu('${level}')" class="preview-only bg-blue-900/80 hover:bg-blue-800 border border-blue-500 text-blue-100 font-bold py-2 px-3 rounded shadow-[0_0_10px_rgba(59,130,246,0.5)] flex items-center transition text-[10px] uppercase">
+                    <button onclick="window.openEditorMapelMenu('${level}')" class="bg-blue-900/80 hover:bg-blue-800 border border-blue-500 text-blue-100 font-bold py-2 px-3 rounded shadow-[0_0_10px_rgba(59,130,246,0.5)] flex items-center transition text-[10px] uppercase">
                         📚 Editor Mapel
                     </button>
                     
                     <button onclick="window.openEditorPengawas('${level}')" class="admin-only bg-purple-900/80 hover:bg-purple-800 border border-purple-500 text-purple-100 font-bold py-2 px-3 rounded shadow-[0_0_10px_rgba(168,85,247,0.5)] flex items-center transition text-[10px] uppercase">
-                        🧑‍🏫 Ganti Pengawas (Manual)
+                        🧑‍🏫 Ganti Pengawas
+                    </button>
+
+                    <button onclick="window.openReminderWA('${level}')" class="admin-only bg-orange-600 hover:bg-orange-500 text-white font-bold py-2 px-3 rounded shadow-[0_0_10px_rgba(249,115,22,0.5)] flex items-center transition text-[10px] uppercase">
+                        💬 WA Reminder
                     </button>
                 `;
 
@@ -2191,8 +2226,74 @@
             } else { alert.innerText = "Gagal memproses."; alert.classList.remove('hidden'); }
         }
 
-        let tempRepData = []; 
+        // --- FITUR BARU: WA REMINDER PENGAWAS (BROADCAST PER SESI) ---
+        window.openReminderWA = function(lvl) {
+            document.getElementById('remind-wa-lvl').value = lvl;
+            const selHari = document.getElementById('remind-wa-hari');
+            selHari.innerHTML = '<option value="">Pilih Hari</option>';
+            availableDays.forEach(h => selHari.innerHTML += `<option value="${h}">${h}</option>`);
+            document.getElementById('remind-wa-sesi').innerHTML = '<option value="">-</option>';
+            openModal('modal-reminder-wa');
+        }
 
+        window.updateReminderWASesi = function() {
+            const h = document.getElementById('remind-wa-hari').value;
+            const l = document.getElementById('remind-wa-lvl').value;
+            const sesi = document.getElementById('remind-wa-sesi');
+            sesi.innerHTML = '<option value="">Pilih Sesi</option>';
+            if(!h || !l) return;
+            let maxS = 0;
+            if(currentScheduleData[h] && currentScheduleData[h][l]) {
+                currentScheduleData[h][l].sessions.forEach(s => { if(s.type === 'sesi' && s.jam > maxS) maxS = s.jam; });
+            }
+            for(let i=1; i<=maxS; i++) sesi.innerHTML += `<option value="${i}">Sesi ${i}</option>`;
+        }
+
+        window.generateAndCopyReminderWA = function() {
+            const lvl = document.getElementById('remind-wa-lvl').value;
+            const h = document.getElementById('remind-wa-hari').value;
+            const s = parseInt(document.getElementById('remind-wa-sesi').value);
+
+            if(!lvl || !h || !s) { showToast("Pilih Hari dan Sesi terlebih dahulu!", true); return; }
+
+            const thn = savedSetupData.thn || "2025/2026";
+            
+            let waText = `Bismillah,\n\n📢🔔 *REMINDER PENGAWAS UJIAN ${lvl}* 🔔📢\n*Tahun Ajaran ${thn}*\n\n`;
+            waText += `📆 *${h}*\n⏰ *SESI ${s}*\n\n*Daftar Tugas Pengawas:*\n\n`;
+
+            if(currentScheduleData[h] && currentScheduleData[h][lvl]) {
+                const sesiData = currentScheduleData[h][lvl].sessions.find(x => x.type === 'sesi' && x.jam === s);
+                if(sesiData && sesiData.pengawas) {
+                    currentScheduleData[h][lvl].rombels.forEach(r => {
+                        let mapel = sesiData.mapelUtama[r];
+                        if(mapel && mapel !== "-") {
+                            let waktuFix = getKelompokKelas(lvl, r) === 'atas' ? (sesiData.waktu_atas || sesiData.waktu || "-") : (sesiData.waktu_bawah || sesiData.waktu || "-");
+                            let gurus = sesiData.pengawas[r] || ["-TBA-"];
+                            
+                            waText += `🎯 *${r}* (${waktuFix})\n`;
+                            waText += `📝 ${mapel}\n`;
+                            gurus.forEach(g => {
+                                waText += `👤 ✅ ${g}\n`;
+                            });
+                            waText += `\n`;
+                        }
+                    });
+                }
+            }
+
+            waText += `_Mohon kehadirannya 15 menit sebelum ujian dimulai._\n_Jazaakumullahu khairan_ atas perhatiannya.`;
+
+            navigator.clipboard.writeText(waText).then(() => {
+                closeModal('modal-reminder-wa');
+                showToast("✅ Teks Reminder WA berhasil disalin ke Clipboard!");
+            }).catch(err => {
+                console.error(err);
+                showToast("Gagal menyalin teks WA.", true);
+            });
+        }
+        // --- END FITUR BARU ---
+
+        let tempRepData = []; 
         window.updateRepGuruIzin = function() {
             const h = document.getElementById('rep-hari').value;
             const drop = document.getElementById('rep-guru-izin');
