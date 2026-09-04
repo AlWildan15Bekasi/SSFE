@@ -80,17 +80,15 @@
             padding: 8px 10px; 
         }
         
-        /* Mengunci kolom agar proporsional dan teks tidak patah parah */
         .col-hari { min-width: 120px !important; width: 120px !important; }
         .col-jam { min-width: 50px !important; width: 50px !important; }
         .col-waktu { 
             min-width: 140px !important; 
             width: 140px !important;
-            white-space: nowrap !important; /* Haram turun baris */
+            white-space: nowrap !important; 
         }
         .nowrap-text { white-space: nowrap !important; }
 
-        /* Warna Tema per Tingkat */
         .bg-header-sd { background-color: #4ade80 !important; color: #000 !important; border-bottom: 2px solid #000 !important; }
         .bg-mapel-sd { background-color: #bbf7d0 !important; color: #000 !important; font-weight: bold; border-bottom: 2px solid #000 !important; }
         .bg-pengawas-sd { background-color: #166534 !important; color: white !important; font-weight: bold; border-bottom: 2px solid #000 !important; }
@@ -159,7 +157,6 @@
 </head>
 <body class="antialiased flex flex-col relative overflow-x-hidden">
 
-    <!-- Ornamen Latar Belakang -->
     <div class="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] bg-schoolBlue rounded-full blur-[120px] opacity-50 pointer-events-none z-[-1]"></div>
     <div class="fixed bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-schoolGold rounded-full blur-[150px] opacity-20 pointer-events-none z-[-1]"></div>
 
@@ -205,7 +202,7 @@
                 <button id="btn-menu-admin" class="glass-panel hover:bg-schoolBlue/80 border-blue-400 border transition-all duration-300 transform hover:-translate-y-2 rounded-2xl p-8 flex flex-col items-center justify-center text-center shadow-[0_0_15px_rgba(96,165,250,0.4)] hover:shadow-[0_0_25px_rgba(96,165,250,0.7)]">
                     <svg class="w-16 h-16 text-blue-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                     <h2 class="text-xl font-bold text-white uppercase tracking-widest">Panel Admin Jadwal</h2>
-                    <p class="text-xs text-gray-400 mt-2">Buka jadwal tersimpan, ganti pengawas, dan cetak laporan.</p>
+                    <p class="text-xs text-gray-400 mt-2">Buka jadwal tersimpan, revisi pengawas, dan cetak laporan.</p>
                 </button>
             </div>
         </div>
@@ -319,6 +316,10 @@
                 <p class="text-xs text-gray-400">Mode Eksekusi & Manajemen Jadwal Aktif</p>
             </div>
             <div class="flex gap-2">
+                <!-- Tombol Simpan Revisi Permanen (Menimpa JSON Secara Keseluruhan) -->
+                <button id="btn-save-revision" onclick="saveRevision()" class="bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-4 rounded shadow flex items-center transition text-sm uppercase">
+                    💾 Simpan Revisi Permanen
+                </button>
                 <button id="btn-export-all" onclick="exportAllExcelJS()" class="bg-green-700 hover:bg-green-600 text-white font-bold py-2 px-4 rounded shadow flex items-center transition text-sm uppercase">
                     Ekspor Semua Ke Excel
                 </button>
@@ -373,7 +374,7 @@
             <!-- PANEL REPLACEMENT (HARI H) -->
             <div class="glass-panel p-6 rounded-xl border-t-2 border-blue-400 md:col-span-2">
                 <h3 class="text-lg font-bold text-blue-400 mb-4 flex items-center uppercase text-center">Replacement Protocol (Ganti Pengawas Dadakan Hari H)</h3>
-                <p class="text-xs text-gray-400 text-center mb-4">Fitur ini akan menyimpan riwayat ke Log dan membuat cetakan Surat Tugas / Teks WA untuk Guru Pengganti.</p>
+                <p class="text-xs text-gray-400 text-center mb-4">Fitur ini mencatat ke Log_Pergantian dan menghasilkan Rekap PDF / Teks WA untuk keperluan harian.</p>
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
                     <div><label class="block text-xs text-gray-400 mb-1">Hari</label><select id="rep-hari" class="w-full p-2 rounded futuristic-input text-sm filter-hari" onchange="updateRepGuruIzin()"></select></div>
                     <div><label class="block text-xs text-gray-400 mb-1">Guru Izin</label><select id="rep-guru-izin" class="w-full p-2 rounded futuristic-input text-sm" onchange="updateRepSesi()"><option value="">-</option></select></div>
@@ -383,8 +384,7 @@
                     <div><label class="block text-xs text-neonGold mb-1">Guru Pengganti</label><select id="rep-guru-pengganti" class="w-full p-2 rounded futuristic-input text-sm border-neonGold"><option value="">-</option></select></div>
                     
                     <div class="md:col-span-3 lg:col-span-6 flex justify-end mt-2 gap-3 flex-wrap">
-                        <button onclick="openModal('modal-rekap-pdf')" class="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-6 rounded shadow transition tracking-widest uppercase flex items-center">💬 WA & Rekap</button>
-                        <button id="btn-print-surat" onclick="generateSuratTugasPDF()" class="hidden bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-6 rounded shadow transition tracking-widest uppercase">🖨️ Surat Tugas</button>
+                        <button onclick="openModal('modal-rekap-pdf')" class="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-6 rounded shadow transition tracking-widest uppercase flex items-center">💬 WA & Rekap PDF</button>
                         <button id="btn-replace" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-8 rounded shadow transition tracking-widest uppercase">Eksekusi Darurat</button>
                     </div>
                 </div>
@@ -521,11 +521,11 @@
         </div>
     </div>
 
-    <!-- MODAL EDITOR GANTI PENGAWAS -->
+    <!-- MODAL EDITOR GANTI PENGAWAS (Manual Revisi) -->
     <div id="modal-pengawas" class="modal-overlay">
         <div class="glass-panel p-8 rounded-xl w-full max-w-lg relative">
             <h2 class="text-xl font-bold text-purple-400 mb-4 border-b border-purple-400/30 pb-2">Editor Pengawas Manual</h2>
-            <p class="text-xs text-gray-400 mb-4">Ganti atau tambah pengawas spesifik per rombel. Bisa digunakan sebelum atau sesudah jadwal disimpan.</p>
+            <p class="text-xs text-gray-400 mb-4">Ganti atau tambah pengawas spesifik per rombel. Jangan lupa klik "Simpan Revisi Permanen" di Panel Admin setelah selesai mengedit.</p>
             <div class="grid grid-cols-2 gap-4 mb-6">
                 <div class="col-span-2 hidden"><input type="hidden" id="edit-pgw-lvl"></div>
                 <div><label class="block text-xs font-bold text-gray-400 mb-1">Hari</label><select id="edit-pgw-hari" class="w-full p-2 rounded futuristic-input text-sm" onchange="updateEditorPgwSesi()"></select></div>
@@ -638,13 +638,9 @@
         </div>
     </div>
 
-    <!-- AREA TERSEMBUNYI UNTUK RENDER PDF -->
+    <!-- AREA TERSEMBUNYI UNTUK RENDER PDF REKAP -->
     <div id="hidden-rekap-container" class="pdf-hidden-container">
         <div id="rekap-pdf-content" style="background: white; color: black; padding: 40px; font-family: 'Arial', sans-serif;"></div>
-    </div>
-    
-    <div id="hidden-surat-container" class="pdf-hidden-container">
-        <div id="surat-pdf-content" style="background: white; color: black; padding: 40px; font-family: 'Arial', sans-serif;"></div>
     </div>
 
     <!-- FOOTER MOTO SEKOLAH -->
@@ -653,7 +649,8 @@
     </div>
 
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyjOGDb8-NdCzVFyouZgEWwOMuiut1xf47KJ3-YKZTL1chKneet-9WVis3x3WwiI-Vy/exec'; // --- GANTI DENGAN URL DEPLOY TERBARUMU ---
+        // --- URL WEB APP GOOGLE APPS SCRIPT ---
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx_Gv8xK43a4x2wVjH3b-uX7F38f20387R_r204R_x4a9-v0c_T3f42c_w/exec'; 
 
         let dummyTeachers = []; 
         let masterGurus = [];   
@@ -664,7 +661,6 @@
         let savedSetupData = {}; 
         let excludedDates = []; 
         
-        let lastReplacement = null;
         let customTimeSettings = {}; 
 
         function getDayTimeSettings(lvl, hari, kelompok = 'bawah') {
@@ -795,7 +791,7 @@
 
             masterTemplates.forEach(t => {
                 if(!t.Tingkat_Kelas || !t.Jenis_Ujian) return;
-                allUjian.add(t.Jenis_Ujian.trim()); // Trim whitespace to prevent bugs
+                allUjian.add(t.Jenis_Ujian.trim()); 
                 let tk = parseInt(t.Tingkat_Kelas);
                 if(tk >= 1 && tk <= 6) sdClasses.add(tk);
                 else if(tk >= 7 && tk <= 9) smpClasses.add(tk);
@@ -857,18 +853,18 @@
                 let data = await res.json();
                 
                 if (data.status === 'success' && data.data) {
-                    currentScheduleData = data.data; // Data jadwal termutakhir
+                    currentScheduleData = data.data; 
                     
-                    // Ekstrak info meta
                     availableDays = Object.keys(currentScheduleData).filter(k => k !== 'replacements');
                     
-                    // Karena admin load jadwal tersimpan, kita harus set UI agar match dgn mode Admin
                     secResult.classList.remove('mode-preview');
                     secResult.classList.add('mode-admin');
                     
-                    // Render tabel secara UNIVERSAL (sama persis bentuknya dgn Preview)
                     renderAllMatrices();
                     populateDayFilters();
+                    
+                    // WORKLOAD OTOMATIS: Dijalankan sesaat setelah Panel Admin dibuka
+                    updateRekapSesi();
                     
                     hideAll();
                     secResult.classList.remove('hidden');
@@ -908,9 +904,6 @@
             showToast("Semua Pengawas berhasil diacak ulang!");
         });
 
-        // ==========================================
-        // FUNGSI INTI: PENYUSUNAN MAPEL (SATU REL LURUS)
-        // ==========================================
         function buildScheduleState(isRefresh = false) {
             currentScheduleData = { replacements: [] }; 
             const startDate = new Date(savedSetupData.tglMulai || new Date());
@@ -964,7 +957,6 @@
                 let uniqueMapelGroups = [...new Set(jenjangTmpls.map(t => getFuzzyMapelGroup(t.Mata_Pelajaran)))];
                 shuffleArray(uniqueMapelGroups);
                                 
-                // Prioritas Grup Eksakta
                 uniqueMapelGroups.sort((a,b) => {
                     let exA = ['grup_math', 'grup_science', 'grup_fisika', 'grup_kimia'].includes(a) ? 1 : 0;
                     let exB = ['grup_math', 'grup_science', 'grup_fisika', 'grup_kimia'].includes(b) ? 1 : 0;
@@ -991,8 +983,6 @@
                 let rombelChunks = {};
                 for(let r in rombelMap) { rombelChunks[r] = Array.from({length: totalDays}, () => []); }
 
-                // BACK TO BASIC: Hanya cek kuota maksimum per hari dan anti-eksakta dobel.
-                // TIDAK ADA PENGHALANG DURASI DI SINI! (Agar Mapel masuk 100%)
                 function isValidChunk(allChunksForRombel, targetDayIndex, newMapel, tingkat, lvlId) {
                     if(!allChunksForRombel || !allChunksForRombel[targetDayIndex]) return false;
                     let chunk = allChunksForRombel[targetDayIndex];
@@ -1003,10 +993,8 @@
                     let isSMP = lvlId === 'SMP';
                     let isSMA = lvlId === 'SMA';
 
-                    // Aturan ketat mapel eksak: Dilarang numpuk di 1 hari
                     if ((isSMP || isSMA) && isExact(newMapel) && chunk.some(x => isExact(x))) return false;
 
-                    // Batasan wajar mapel per hari
                     if (isSD) { if (maxM > 2) return false; } 
                     else if (isSMP) { if (maxM > 3) return false; } 
                     else if (isSMA) { if (maxM > 3) return false; }
@@ -1037,7 +1025,6 @@
                             if(!rombelChunks[tr.rombel] || !rombelChunks[tr.rombel][d]) { isValidForAll = false; break; }
                             let chunk = rombelChunks[tr.rombel][d];
                             totalLoad += chunk.length;
-                            // Cek validasi basic
                             if (!isValidChunk(rombelChunks[tr.rombel], d, tr.mapelObj, tr.tingkat, lvl.id)) {
                                 isValidForAll = false; break;
                             }
@@ -1050,7 +1037,6 @@
                         placedDay = bestScores[0].day;
                     }
 
-                    // Fallback jika tidak ada hari ideal (isi paksa di hari paling longgar)
                     if (placedDay === -1) {
                         let minLoad = 999;
                         for(let d of dayIndices) {
@@ -1081,7 +1067,7 @@
             availableDays.forEach((hari, hariIdx) => {
                 levels.forEach(lvl => {
                     let rombelDataList = levelData[lvl.id];
-                    if(!rombelDataList || rombelDataList.length === 0) return; // Jika kosong, lewati
+                    if(!rombelDataList || rombelDataList.length === 0) return; 
 
                     let hasMapel = rombelDataList.some(rd => rd.chunks[hariIdx] && rd.chunks[hariIdx].length > 0);
                     if(!hasMapel) return;
@@ -1096,7 +1082,6 @@
                     
                     if(maxMapelInDay === 0) return;
 
-                    // Buat Skeleton Lurus
                     let dailySessions = [];
                     let rowCount = maxMapelInDay * 2 + 1; 
 
@@ -1142,7 +1127,6 @@
                 });
             });
 
-            // Tukang Jam beraksi (Dual Timer Injection)
             recalculateTimesAndBreaks();
             reassignPengawas();
         }
@@ -1157,9 +1141,7 @@
                     let sessions = data.sessions;
                     if(sessions.length === 0) return;
 
-                    // Eksekusi Stopwatch Kelas Bawah
                     runStopwatch(lvl, hari, data, 'bawah');
-                    // Eksekusi Stopwatch Kelas Atas
                     runStopwatch(lvl, hari, data, 'atas');
                 });
             });
@@ -1168,7 +1150,7 @@
         function runStopwatch(lvl, hari, data, klp) {
             let sessions = data.sessions;
             let klpRombels = data.rombels.filter(r => getKelompokKelas(lvl, r) === klp);
-            if(klpRombels.length === 0) return; // Skip if group doesn't exist
+            if(klpRombels.length === 0) return; 
 
             let userSet = getDayTimeSettings(lvl, hari, klp);
             let [startH, startM] = userSet.start.split(':').map(Number);
@@ -1180,11 +1162,11 @@
             let isPulang = false;
 
             sessions.forEach((s, idx) => {
-                // Jika sudah ditandai pulang sebelumnya
                 if (isPulang) {
                     if(klp === 'bawah') { s.waktu_bawah = "-"; s.isPulangBawah = true; }
                     else { s.waktu_atas = "-"; s.isPulangAtas = true; }
-                    klpRombels.forEach(r => s.mapelUtama[r] = "-"); // Ganti "Pulang" dengan "-"
+                    // KONDISI PULANG DIGANTI STRIP "-"
+                    klpRombels.forEach(r => s.mapelUtama[r] = "-"); 
                     return;
                 }
 
@@ -1207,7 +1189,8 @@
                         isPulang = true;
                         if(klp === 'bawah') { s.waktu_bawah = "-"; s.isPulangBawah = true; }
                         else { s.waktu_atas = "-"; s.isPulangAtas = true; }
-                        klpRombels.forEach(r => s.mapelUtama[r] = "-"); // Ganti "Pulang" dengan "-"
+                        // KONDISI PULANG DIGANTI STRIP "-"
+                        klpRombels.forEach(r => s.mapelUtama[r] = "-"); 
                     } else {
                         let breakDur = (idx === 2) ? userSet.break1 : userSet.break2; 
                         let breakEnd = new Date(currentTime.getTime() + breakDur * 60000); 
@@ -1235,7 +1218,8 @@
                         isPulang = true;
                         if(klp === 'bawah') { s.waktu_bawah = "-"; s.isPulangBawah = true; }
                         else { s.waktu_atas = "-"; s.isPulangAtas = true; }
-                        klpRombels.forEach(r => s.mapelUtama[r] = "-"); // Ganti "Pulang" dengan "-"
+                        // KONDISI PULANG DIGANTI STRIP "-"
+                        klpRombels.forEach(r => s.mapelUtama[r] = "-"); 
                     } else {
                         let endTimeSesi = new Date(currentTime.getTime() + maxDur * 60000);
                         let wStr = formatTime(currentTime) + ' - ' + formatTime(endTimeSesi);
@@ -1303,7 +1287,6 @@
                             let tingkatMatch = r.match(/\d+/);
                             let tingkat = tingkatMatch ? parseInt(tingkatMatch[0]) : 0;
                                                         
-                            // JALUR VIP: Wali Kelas 1-3 SD
                             if (lvl === 'SD' && tingkat >= 1 && tingkat <= 3) {
                                 let dedicatedGurusRoom = masterGurus.filter(g => g.Keterangan && g.Keterangan.includes(r));
                                 let names = dedicatedGurusRoom.map(g => g.Nama_Guru);
@@ -1314,9 +1297,9 @@
                                 if(names.length === 0 && isKetuaHere) {
                                     let backupGuru = masterGurus.filter(g => {
                                         return g.Nama_Guru !== savedSetupData.ketua && 
-                                               g.Jenjang_Diajar === 'SD' && 
-                                               !dedicatedSD13.has(g.Nama_Guru) && 
-                                               !assignedGurusCurrentSesi.has(g.Nama_Guru); 
+                                            g.Jenjang_Diajar === 'SD' && 
+                                            !dedicatedSD13.has(g.Nama_Guru) && 
+                                            !assignedGurusCurrentSesi.has(g.Nama_Guru); 
                                     });
                                     if(backupGuru.length > 0) {
                                         backupGuru.sort((a, b) => workload[a.Nama_Guru] - workload[b.Nama_Guru]);
@@ -1336,17 +1319,14 @@
                                     }
                                 });
                             } else {
-                                // JALUR ARTERI (THE SOFT RULE): Pencarian Guru
                                 let availableForRoom = masterGurus.filter(g => {
                                     if(g.Nama_Guru === savedSetupData.ketua) return false;
-                                    if(g.Jenjang_Diajar !== lvl) return false; // Harus satu jenjang!
+                                    if(g.Jenjang_Diajar !== lvl) return false; 
                                     if(dedicatedSD13.has(g.Nama_Guru)) return false; 
-                                    if(assignedGurusCurrentSesi.has(g.Nama_Guru)) return false; // Nggak boleh dobel di satu waktu
-
+                                    if(assignedGurusCurrentSesi.has(g.Nama_Guru)) return false; 
                                     return true;
                                 });
 
-                                // Prioritas 1: Guru yang tidak ngawas di sesi berurutan
                                 let priority1 = availableForRoom.filter(g => {
                                     let hist = historyGuruToday[g.Nama_Guru] || [];
                                     let currentJamNum = parseInt(sesi.jam);
@@ -1356,10 +1336,8 @@
                                     return true;
                                 });
 
-                                // Pintu Darurat (Soft Rule): Kalau Prioritas 1 habis, ambil sisa dari availableForRoom 
-                                // (Mereka adalah guru di jenjang yang sama yang kebetulan tadi ngajar Sesi sebelumnya)
                                 let candidates = priority1.length > 0 ? priority1 : availableForRoom;
-                                let picked = "-TBA-"; // Seharusnya sangat langka terjadi sekarang
+                                let picked = "-TBA-"; 
 
                                 if(candidates.length > 0) {
                                     shuffleArray(candidates); 
@@ -1372,7 +1350,7 @@
                                     historyGuruToday[picked].push({sesi: sesi.jam});
                                 }
                                 pengawasMap[r] = [picked]; 
-                             }
+                            }
                         });
                         sesi.pengawas = pengawasMap;
                     });
@@ -1384,10 +1362,7 @@
             const container = document.getElementById('matrix-containers');
             container.innerHTML = '';
             
-            // Cek mode apakah ini mode Preview atau Admin
             const isPreviewMode = document.getElementById('result-section').classList.contains('mode-preview');
-            
-            // Fallback tahun ajaran (Berguna kalau mode Admin)
             const thn = savedSetupData.thn || "2025/2026"; 
 
             ['SD', 'SMP', 'SMA'].forEach(level => {
@@ -1404,7 +1379,6 @@
                 }
                 
                 if(!isDataExists) {
-                    // Hanya tampilkan warning kalau di mode Preview. Di mode admin kalau ga ada ya biarin aja kosong.
                     if (isPreviewMode) {
                         let isChecked = false;
                         for(let i=1; i<=12; i++) { if(document.getElementById(`chk-${level.toLowerCase()}-${i}`)?.checked) isChecked=true; }
@@ -1417,18 +1391,16 @@
 
                 let lvlLC = level.toLowerCase();
                 let jenisUtamaLvl = "UJIAN";
-                // Deteksi nama ujian di preview mode
                 if (isPreviewMode) {
                     for(let i=1; i<=12; i++) {
                         let chk = document.getElementById(`chk-${lvlLC}-${i}`);
                         let ujiSelect = document.getElementById(`uji-${lvlLC}-${i}`);
                         if(chk && chk.checked && ujiSelect && ujiSelect.value) {
-                            jenisUtamaLvl = ujiSelect.value.toUpperCase(); break;
+                            jenisUtamaLvl = ujiSelect.value.trim().toUpperCase(); break;
                         }
                     }
                 }
 
-                // Pengklasifikasian Rombel untuk 2 Timer (Universal)
                 let rombelsBawah = []; let rombelsAtas = [];
                 let thBawahText = "WAKTU"; let thAtasText = "WAKTU";
 
@@ -1448,12 +1420,10 @@
 
                 let color = level === 'SD' ? 'green' : (level === 'SMP' ? 'blue' : 'red');
 
-                // Header HTML - Tombol Editor Waktu dipisah logikanya
                 let headerButtons = `
                     <button onclick="exportLevelJS('${level}', false)" class="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-3 rounded text-[10px] uppercase tracking-tighter">⬇️ Excel Pengawas</button>
                     <button onclick="exportLevelJS('${level}', true)" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-3 rounded text-[10px] uppercase tracking-tighter">⬇️ Excel Siswa</button>
                     
-                    <!-- Muncul Saat Preview -->
                     <button onclick="openEditorWaktu('${level}')" class="preview-only bg-yellow-600 hover:bg-yellow-500 text-schoolBlue font-bold py-2 px-3 rounded text-[10px] uppercase tracking-tighter shadow-[0_0_10px_rgba(250,204,21,0.4)] transition">
                         ⏱️ Editor Waktu
                     </button>
@@ -1461,7 +1431,6 @@
                         📚 Editor Mapel
                     </button>
                     
-                    <!-- Muncul Saat Panel Admin -->
                     <button onclick="window.openEditorPengawas('${level}')" class="admin-only bg-purple-900/80 hover:bg-purple-800 border border-purple-500 text-purple-100 font-bold py-2 px-3 rounded shadow-[0_0_10px_rgba(168,85,247,0.5)] flex items-center transition text-[10px] uppercase">
                         🧑‍🏫 Ganti Pengawas (Manual)
                     </button>
@@ -1513,27 +1482,32 @@
                     data.sessions.forEach(s => { 
                         let hasPengawas = s.type === 'sesi' && s.pengawas && Object.keys(s.pengawas).length > 0;
                         let validToPrint = true;
-                        // Baris yang isinya setrip semua nggak usah dicetak
                         if (s.isPulangBawah && s.isPulangAtas && s.type !== 'sesi') validToPrint = false;
                         
                         if(validToPrint) totalRowSpanHari += hasPengawas ? 2 : 1; 
                     });
 
-                    if(totalRowSpanHari === 0) return; // Prevent empty day rows
+                    if(totalRowSpanHari === 0) return; 
 
                     data.sessions.forEach((sesi, i) => {
                         let validToPrint = true;
                         if (sesi.isPulangBawah && sesi.isPulangAtas && sesi.type !== 'sesi') validToPrint = false;
                         if (!validToPrint) return;
+                        
+                        // JARING PENGAMAN UNDEFINED: Menghindari teks "undefined" dari data lawas
+                        let displayWaktuBawah = sesi.waktu_bawah || sesi.waktu || '-';
+                        if (String(displayWaktuBawah) === 'undefined') displayWaktuBawah = '-';
+                        
+                        let displayWaktuAtas = sesi.waktu_atas || sesi.waktu || '-';
+                        if (String(displayWaktuAtas) === 'undefined') displayWaktuAtas = '-';
 
                         html += `<tr>`;
                         if(i === 0) html += `<td rowspan="${totalRowSpanHari}" class="font-bold bg-white-cell border-black-custom">${hari}</td>`;
                         
                         html += `<td class="font-bold bg-white-cell border-black-custom">${sesi.jam}</td>`;
 
-                        // PRINT BAGIAN KELAS BAWAH
                         if(rombelsBawah.length > 0) {
-                            html += `<td class="font-bold bg-white-cell border-black-custom col-waktu">${sesi.waktu_bawah || '-'}</td>`;
+                            html += `<td class="font-bold bg-white-cell border-black-custom col-waktu">${displayWaktuBawah}</td>`;
                             if(sesi.type === 'break' || sesi.type === 'dzikir') {
                                 let labelBreak = sesi.isPulangBawah ? "-" : (sesi.type === 'dzikir' ? "DZIKIR, DHUHA & MUROJA'AH" : "ISTIRAHAT");
                                 html += `<td colspan="${rombelsBawah.length}" class="font-bold text-sm bg-gray-200-cell border-black-custom border-l-2-black uppercase tracking-widest">${labelBreak}</td>`;
@@ -1542,9 +1516,8 @@
                             }
                         }
 
-                        // PRINT BAGIAN KELAS ATAS
                         if(rombelsAtas.length > 0) {
-                            html += `<td class="font-bold bg-white-cell border-black-custom border-l-2-black col-waktu">${sesi.waktu_atas || '-'}</td>`;
+                            html += `<td class="font-bold bg-white-cell border-black-custom border-l-2-black col-waktu">${displayWaktuAtas}</td>`;
                             if(sesi.type === 'break' || sesi.type === 'dzikir') {
                                 let labelBreak = sesi.isPulangAtas ? "-" : (sesi.type === 'dzikir' ? "DZIKIR, DHUHA & MUROJA'AH" : "ISTIRAHAT");
                                 html += `<td colspan="${rombelsAtas.length}" class="font-bold text-sm bg-gray-200-cell border-black-custom uppercase tracking-widest">${labelBreak}</td>`;
@@ -1555,7 +1528,6 @@
 
                         html += `</tr>`;
 
-                        // BARIS PENGAWAS
                         let hasPengawas = sesi.type === 'sesi' && sesi.pengawas && Object.keys(sesi.pengawas).length > 0;
                         if(hasPengawas) {
                             html += `<tr class="pengawas-row">`;
@@ -1601,6 +1573,19 @@
                 } else { showToast("Error: " + data.message, true); }
             } catch(e) { console.error(e); showToast("Gagal koneksi ke DB.", true); }
         });
+        
+        // FUNGSI UPDATE PERMANEN (TOMBOL UNGU BATCH SAVE)
+        window.saveRevision = async function() {
+            showToast("Menyimpan revisi ke Database...", false);
+            try {
+                let payload = { scheduleData: currentScheduleData };
+                let res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'updateSchedule', payload: payload }) });
+                let data = await res.json();
+                if (data.status === 'success') {
+                    showToast("Revisi Jadwal berhasil disimpan permanen!");
+                } else { showToast("Error: " + data.message, true); }
+            } catch(e) { console.error(e); showToast("Gagal koneksi ke DB.", true); }
+        }
 
         const hexStyles = {
             'bg-header-sd': { f: 'FF4ADE80', c: 'FF000000', b: true },
@@ -1626,11 +1611,10 @@
             const thn = savedSetupData.thn || "2025/2026";
             let lvlLC = level.toLowerCase();
             let jenisUtamaLvl = "UJIAN";
-            // Coba ambil dari UI kalau ada (mode preview)
             for(let i=1; i<=12; i++) {
                 let ujiSelect = document.getElementById(`uji-${lvlLC}-${i}`);
                 if(document.getElementById(`chk-${lvlLC}-${i}`)?.checked && ujiSelect && ujiSelect.value) {
-                    jenisUtamaLvl = ujiSelect.value.toUpperCase(); break;
+                    jenisUtamaLvl = ujiSelect.value.trim().toUpperCase(); break;
                 }
             }
 
@@ -2080,6 +2064,7 @@
 
         function updateRekapSesi() {
             const container = document.getElementById('rekap-sesi-container');
+            if(!container) return; 
             let counts = {}; dummyTeachers.forEach(t => counts[t] = 0);
             if (savedSetupData.ketua) delete counts[savedSetupData.ketua];
 
@@ -2199,7 +2184,10 @@
                 }
             }
             if(success) {
-                renderAllMatrices(); closeModal('modal-pengawas'); showToast("Pengawas berhasil diupdate secara manual!");
+                renderAllMatrices(); 
+                updateRekapSesi(); // Refresh workload setelah edit
+                closeModal('modal-pengawas'); 
+                showToast("Pengawas direvisi di layar! Jangan lupa klik 'Simpan Revisi Permanen' agar nempel di Database.");
             } else { alert.innerText = "Gagal memproses."; alert.classList.remove('hidden'); }
         }
 
@@ -2247,7 +2235,7 @@
                             for(let r in s.pengawas) {
                                 if(s.pengawas[r].includes(g)) {
                                     let mapel = s.mapelUtama[r] || "-";
-                                    let waktuFix = getKelompokKelas(lvl, r) === 'atas' ? s.waktu_atas : s.waktu_bawah;
+                                    let waktuFix = getKelompokKelas(lvl, r) === 'atas' ? (s.waktu_atas || s.waktu || "-") : (s.waktu_bawah || s.waktu || "-");
                                     tempRepData.push({ sesi: s.jam, waktu: waktuFix, tingkat: lvl, rombel: r, mapel: mapel });
                                 }
                             }
@@ -2314,12 +2302,12 @@
             }
 
             if(found) {
-                lastReplacement = { hari: h, sesi: s, waktu: replacedWaktu, tingkat: lvl, rombel: replacedRombel, mapel: replacedMapel, guruKeluar: outT, guruMasuk: inT };
                 if(!currentScheduleData.replacements) currentScheduleData.replacements = [];
                 currentScheduleData.replacements.push({ hariJadwal: h, sesi: s, waktu: replacedWaktu, tingkat: lvl, rombel: replacedRombel, mapel: replacedMapel, guruKeluar: outT, guruMasuk: inT });
 
-                document.getElementById('btn-print-surat').classList.remove('hidden');
-                renderAllMatrices(); updateRekapSesi(); updateSubstituteDropdownAuto(h, s); 
+                renderAllMatrices(); 
+                updateRekapSesi(); 
+                updateSubstituteDropdownAuto(h, s); 
                 
                 showToast("Menyimpan perubahan ke DB...", false);
                 try {
@@ -2348,7 +2336,7 @@
                 for(let i=1; i<=12; i++) {
                     if(document.getElementById(`chk-${prefix}-${i}`)?.checked) {
                         let sel = document.getElementById(`uji-${prefix}-${i}`);
-                        if(sel && sel.value) activeExams.add(sel.value);
+                        if(sel && sel.value) activeExams.add(sel.value.trim());
                     }
                 }
             });
@@ -2361,32 +2349,6 @@
             .catch(err => { console.error(err); showToast("Gagal menyalin teks WA.", true); });
             closeModal('modal-rekap-pdf');
         }
-
-        window.generateSuratTugasPDF = function() {
-            if (!lastReplacement) { showToast("Silakan eksekusi pergantian pengawas terlebih dahulu!", true); return; }
-            let htmlContent = `
-            <div style="text-align: center; margin-bottom: 30px;">
-                <h1 style="font-size: 24px; font-weight: bold; margin: 0; text-decoration: underline;">SURAT TUGAS PENGAWAS PENGGANTI</h1>
-                <h2 style="font-size: 18px; font-weight: bold; margin: 5px 0;">AL WILDAN ISLAMIC SCHOOL 15 BEKASI</h2>
-            </div>
-            <div style="font-size: 16px; line-height: 1.6;">
-                <p>Diberitahukan kepada:</p><p style="font-size: 20px; font-weight: bold; margin-left: 20px;">${lastReplacement.guruMasuk}</p>
-                <p style="margin-top: 20px;">Bahwa Anda ditugaskan untuk mengawas ujian sebagai <strong>PENGGANTI</strong> dari:</p>
-                <p style="font-size: 20px; font-weight: bold; margin-left: 20px; color: #d32f2f;">${lastReplacement.guruKeluar}</p>
-                <p style="margin-top: 20px;">Pada jadwal berikut:</p>
-                <ul style="font-size: 16px; margin-left: 20px; line-height: 2;">
-                    <li><strong>Hari / Tanggal :</strong> ${lastReplacement.hari}</li><li><strong>Sesi / Waktu :</strong> Sesi ${lastReplacement.sesi} / ${lastReplacement.waktu}</li><li><strong>Tingkat / Kelas :</strong> ${lastReplacement.tingkat} / ${lastReplacement.rombel}</li>
-                </ul>
-                <p style="margin-top: 30px;">Mohon untuk hadir 15 menit sebelum ujian dimulai. Terima kasih atas kerjasamanya.</p>
-            </div>
-            <div style="margin-top: 60px; text-align: right; font-size: 16px;">
-                <p>Bekasi, ....................................</p><p>Ketua Pelaksana,</p><br><br><br><br><p style="text-decoration: underline; font-weight: bold;">${savedSetupData.ketua || "________________________"}</p>
-            </div>`;
-            document.getElementById('surat-pdf-content').innerHTML = htmlContent;
-            const element = document.getElementById('surat-pdf-content');
-            const opt = { margin: 1, filename: `Surat_Tugas_${lastReplacement.guruMasuk.replace(/\\s+/g, '_')}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } };
-            html2pdf().set(opt).from(element).save();
-        };
 
         window.generateRekapPDF = function() {
             const hari = document.getElementById('print-rekap-hari').value;
