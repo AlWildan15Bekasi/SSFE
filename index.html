@@ -546,7 +546,7 @@
     <div id="modal-editor-waktu" class="modal-overlay">
         <div class="glass-panel p-8 rounded-xl w-full max-w-lg relative">
             <h2 class="text-xl font-bold text-yellow-400 mb-4 border-b border-yellow-400/30 pb-2">⏱️ Editor Waktu</h2>
-            <p class="text-xs text-gray-400 mb-4">Atur waktu ujian untuk kelompok kelas tertentu pada hari yang dipilih. Pastikan untuk menekan 'Terapkan' pada setiap kelompok yang diubah.</p>
+            <p class="text-xs text-gray-400 mb-4">Atur waktu ujian untuk kelompok kelas tertentu pada hari yang dipilih. Klik 'Terapkan' untuk merefresh durasi mapel dari Database.</p>
             
             <div class="space-y-4 mb-6">
                 <div class="grid grid-cols-2 gap-4">
@@ -657,7 +657,7 @@
             <div class="flex flex-col gap-3">
                 <button onclick="copyWAPengganti()" class="w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-500 text-sm font-bold shadow-[0_0_10px_rgba(22,163,74,0.5)] flex items-center justify-center gap-2">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 2.17.69 4.18 1.83 5.84L2.5 22l4.27-1.12C8.36 21.6 10.12 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm4.5 14c-.2.57-1.14 1.1-1.58 1.14-.4.04-.94.13-2.73-.6-2.14-.88-3.52-3.08-3.63-3.23-.1-.14-.86-1.15-.86-2.18 0-1.04.54-1.55.73-1.78.2-.23.43-.29.58-.29.14 0 .29.01.42.02.13.01.32-.05.5.38.19.46.65 1.58.7 1.69.06.12.1.25.02.43-.08.18-.12.29-.24.43-.13.14-.26.31-.38.41-.14.12-.28.26-.12.5.15.24.68 1.1 1.46 1.88.99.99 1.84 1.3 2.08 1.42.23.12.37.1.51-.06.14-.17.6-1.03.77-1.39.16-.36.31-.3.65-.18.34.12 2.15 1.01 2.52 1.17.37.15.61.23.7.35.09.12.09.7-.1 1.28z"></path></svg>
-                    Salin Pesan WA (Pergantian)
+                    Salin Pesan WA
                 </button>
                 <button onclick="generateRekapPDF()" class="w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-500 text-sm font-bold shadow-[0_0_10px_rgba(220,38,38,0.5)]">
                     🖨️ Cetak PDF Rekap
@@ -1233,13 +1233,45 @@
                     klpRombels.forEach(r => {
                         let mName = s.mapelUtama[r];
                         if (mName && mName !== "-") {
-                            let selectEl = document.getElementById(`uji-${lvl.toLowerCase()}-${r.match(/\d+/)[0]}`);
-                            let jenis = selectEl ? selectEl.value : null;
+                            // ==========================================
+                            // REVISI LOGIKA PENCARIAN DURASI (FUZZY SEARCH)
+                            // ==========================================
                             let tingkatKls = r.match(/\d+/)[0];
-                            let tmpl = masterTemplates.find(t => t.Mata_Pelajaran === mName && t.Jenis_Ujian === jenis && String(t.Tingkat_Kelas) === String(tingkatKls)) || 
-                                       masterTemplates.find(t => t.Mata_Pelajaran === mName && t.Jenis_Ujian === jenis);
+                            let selectEl = document.getElementById(`uji-${lvl.toLowerCase()}-${tingkatKls}`);
+                            let jenis = selectEl ? selectEl.value : null;
+
+                            // Pencarian Santuy: Mengabaikan huruf besar/kecil dan spasi ekstra
+                            let safeMName = mName ? mName.trim().toLowerCase() : "";
+                            
+                            let matchingTemplates = masterTemplates.filter(t => {
+                                let tName = t.Mata_Pelajaran ? String(t.Mata_Pelajaran).trim().toLowerCase() : "";
+                                return tName === safeMName && String(t.Tingkat_Kelas) === String(tingkatKls);
+                            });
+
+                            let tmpl = null;
+                            if (matchingTemplates.length > 0) {
+                                if (jenis) {
+                                    // Jika 'jenis' ada, coba cari yang spesifik. Jika gagal, ambil yang pertama ketemu (Fallback)
+                                    tmpl = matchingTemplates.find(t => t.Jenis_Ujian === jenis) || matchingTemplates[0];
+                                } else {
+                                    // Jika di Mode Admin (jenis = null), langsung ambil template pertama yang nama & kelasnya cocok
+                                    tmpl = matchingTemplates[0];
+                                }
+                            } else {
+                                // Ekstra perlindungan: Jika nama kelas gak match sama sekali, cari dari namanya aja
+                                let looseMatches = masterTemplates.filter(t => {
+                                    let tName = t.Mata_Pelajaran ? String(t.Mata_Pelajaran).trim().toLowerCase() : "";
+                                    return tName === safeMName;
+                                });
+                                if (looseMatches.length > 0) {
+                                    if(jenis) tmpl = looseMatches.find(t => t.Jenis_Ujian === jenis) || looseMatches[0];
+                                    else tmpl = looseMatches[0];
+                                }
+                            }
+                            
                             let dur = tmpl ? getSafeDuration(tmpl) : 90;
                             if(dur > maxDur) maxDur = dur;
+                            // ==========================================
                         }
                     });
 
